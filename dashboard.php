@@ -7,7 +7,7 @@ $total = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM t
 ?>
 <h2>Dashboard</h2>
 <p>Total Order: <?= $total['total']; ?></p>
-<a href="customers.php">Data Pelanggan</a> |
+<a href="pelanggan.php">Data Pelanggan</a> |
 <a href="transaksi.php">Transaksi</a> |
 <a href="status.php">Status Laundry</a> |
 <a href="laporan.php">Laporan</a>
