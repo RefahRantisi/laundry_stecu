@@ -1,5 +1,5 @@
 <?php
-include 'config.php';
+include 'koneksi.php';
 
 /* FILTER TANGGAL */
 $where = "";
