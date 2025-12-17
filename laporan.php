@@ -3,9 +3,9 @@ include 'koneksi.php';
 
 /* FILTER TANGGAL */
 $where = "";
-if (isset($_GET['from']) && isset($_GET['to'])) {
-    $from = $_GET['from'];
-    $to   = $_GET['to'];
+if (!empty($_GET['from']) && !empty($_GET['to'])) {
+    $from = mysqli_real_escape_string($conn, $_GET['from']);
+    $to   = mysqli_real_escape_string($conn, $_GET['to']);
     $where = "AND DATE(t.tanggal) BETWEEN '$from' AND '$to'";
 }
 
@@ -35,57 +35,180 @@ $total = mysqli_fetch_assoc(
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>Laporan Laundry</title>
+<meta charset="UTF-8">
+<title>Laporan Laundry</title>
+
+<style>
+/* RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* BODY */
+body {
+    background-color: #f4f6f9;
+    color: #333;
+}
+
+/* CONTAINER */
+.container {
+    padding: 30px;
+}
+
+/* JUDUL */
+h2 {
+    margin-bottom: 20px;
+}
+
+/* FILTER */
+.filter-box {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.filter-box label {
+    margin-right: 10px;
+}
+
+.filter-box input[type="date"] {
+    padding: 8px;
+    margin-right: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.filter-box button {
+    padding: 8px 16px;
+    background: #2f4050;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.filter-box button:hover {
+    background: #1f2d3a;
+}
+
+/* TABLE */
+.table-wrapper {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table th {
+    background: #2f4050;
+    color: #fff;
+    padding: 12px;
+    text-align: left;
+}
+
+table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+table tr:hover {
+    background: #f1f5f9;
+}
+
+/* TOTAL */
+.total-box {
+    margin-top: 20px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: right;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.total-box strong {
+    font-size: 20px;
+}
+
+/* BACK */
+.back-link {
+    display: inline-block;
+    margin-top: 20px;
+    text-decoration: none;
+    color: #2f4050;
+    font-weight: 500;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+</style>
+
 </head>
 <body>
 
-<h2>Laporan Laundry</h2>
+<div class="container">
+    <h2>Laporan Laundry</h2>
 
-<!-- FILTER -->
-<form method="GET">
-    Dari: <input type="date" name="from" required>
-    Sampai: <input type="date" name="to" required>
-    <button type="submit">Filter</button>
-</form>
+    <!-- FILTER -->
+    <div class="filter-box">
+        <form method="GET">
+            <label>Dari:</label>
+            <input type="date" name="from" value="<?= $_GET['from'] ?? '' ?>">
+            <label>Sampai:</label>
+            <input type="date" name="to" value="<?= $_GET['to'] ?? '' ?>">
+            <button type="submit">Filter</button>
+        </form>
+    </div>
 
-<br>
+    <!-- TABLE -->
+    <div class="table-wrapper">
+        <table>
+            <tr>
+                <th>Nama Pelanggan</th>
+                <th>ID Transaksi</th>
+                <th>Paket Laundry</th>
+                <th>Total Harga</th>
+                <th>Tanggal</th>
+            </tr>
 
-<table border="1" cellpadding="8">
-<tr>
-    <th>Nama Pelanggan</th>
-    <th>ID Transaksi</th>
-    <th>Paket Laundry</th>
-    <th>Total Harga</th>
-    <th>Tanggal</th>
-</tr>
+            <?php if(mysqli_num_rows($query) > 0): ?>
+                <?php while($row = mysqli_fetch_assoc($query)): ?>
+                <tr>
+                    <td><?= htmlspecialchars($row['nama_pelanggan']) ?></td>
+                    <td><?= $row['id_transaksi'] ?></td>
+                    <td><?= htmlspecialchars($row['nama_paket']) ?></td>
+                    <td>Rp <?= number_format($row['total_harga'],0,',','.') ?></td>
+                    <td><?= date('d-m-Y', strtotime($row['tanggal'])) ?></td>
+                </tr>
+                <?php endwhile; ?>
+            <?php else: ?>
+                <tr>
+                    <td colspan="5" align="center">Data tidak ditemukan</td>
+                </tr>
+            <?php endif; ?>
+        </table>
+    </div>
 
-<?php if(mysqli_num_rows($query) > 0) { ?>
-    <?php while($row = mysqli_fetch_assoc($query)) { ?>
-    <tr>
-        <td><?= $row['nama_pelanggan'] ?></td>
-        <td><?= $row['id_transaksi'] ?></td>
-        <td><?= $row['nama_paket'] ?></td>
-        <td>Rp <?= number_format($row['total_harga'],0,',','.') ?></td>
-        <td><?= $row['tanggal'] ?></td>
-    </tr>
-    <?php } ?>
-<?php } else { ?>
-    <tr>
-        <td colspan="5" align="center">Data tidak ditemukan</td>
-    </tr>
-<?php } ?>
-</table>
+    <!-- TOTAL -->
+    <div class="total-box">
+        Total Pendapatan:
+        <strong>Rp <?= number_format($total['total_pendapatan'] ?? 0,0,',','.') ?></strong>
+    </div>
 
-<br>
-
-<h3>Total Pendapatan:
-    Rp <?= number_format($total['total_pendapatan'] ?? 0,0,',','.') ?>
-</h3>
-
-<br>
-<a href="dashboard.php">⬅ Kembali ke Dashboard</a>
+    <a href="dashboard.php" class="back-link">⬅ Kembali ke Dashboard</a>
+</div>
 
 </body>
 </html>
