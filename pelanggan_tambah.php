@@ -17,17 +17,23 @@
 </form>
 
 <?php
-if(isset($_POST['simpan'])){
-    $nama    = $_POST['nama'];
-    $telp    = $_POST['no_telp'];
-    $alamat  = $_POST['alamat'];
+if (isset($_POST['simpan'])) {
 
-    mysqli_query($conn,"
+    $nama = $_POST['nama'];
+    $telp = $_POST['no_telp'];
+    $alamat = $_POST['alamat'];
+
+    mysqli_query($conn, "
         INSERT INTO customers (nama, no_telp, alamat)
         VALUES ('$nama','$telp','$alamat')
     ");
 
-    header("location:pelanggan.php");
+    // AMBIL ID CUSTOMER BARU
+    $customer_id = mysqli_insert_id($conn);
+
+    // KEMBALI KE TRANSAKSI BAWA ID + NAMA
+    header("Location: transaksi.php?customer_id=$customer_id&nama=" . urlencode($nama));
+    exit;
 }
 
 $nama_awal = isset($_GET['nama']) ? $_GET['nama'] : '';
