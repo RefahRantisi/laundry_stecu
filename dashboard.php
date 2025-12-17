@@ -20,10 +20,11 @@ $selesai      = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total
         .navbar {
             background: #2c3e50;
             padding: 15px;
+            text-align: center;
         }
         .navbar a {
             color: white;
-            margin-right: 15px;
+            margin-right: 0 15px;
             text-decoration: none;
             font-weight: bold;
         }
@@ -34,6 +35,7 @@ $selesai      = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total
             display: flex;
             gap: 20px;
             margin-top: 20px;
+            justify-content: center;
         }
         .card {
             background: white;
