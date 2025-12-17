@@ -1,26 +1,38 @@
 <?php
 include 'koneksi.php';
 
-// SIMPAN TRANSAKSI
+/* ===============================
+   SIMPAN TRANSAKSI
+================================ */
 if (isset($_POST['simpan'])) {
-    $customer_id = $_POST['customer_id'];
-    $package_id = $_POST['package_id'];
-    $berat_kg = $_POST['berat_kg'];
-    $total_harga = $_POST['total_harga'];
-    $status_id = 1; // Diterima
 
-    $query = mysqli_query($koneksi, "
-        INSERT INTO transactions
-        (customer_id, package_id, berat_kg, total_harga, status_id)
+    $tanggal = date('Y-m-d H:i:s');
+    $customer_id = $_POST['customer_id'];
+    $berat = $_POST['berat_kg'];
+    $harga_paket = $_POST['harga_paket']; // harga per kg (hidden)
+
+    // HITUNG TOTAL (SERVER SIDE)
+    $total = $harga_paket * $berat;
+
+    $package_id = 1; // sementara
+    $status_id = 1;
+
+    mysqli_query($conn, "INSERT INTO transactions
+        (tanggal, customer_id, package_id, berat_kg, total_harga, status_id)
         VALUES
-        ('$customer_id', '$package_id', '$berat_kg', '$total_harga', '$status_id')
+        ('$tanggal','$customer_id','$package_id','$berat','$total','$status_id')
     ");
 
-    if ($query) {
-        echo "<script>alert('Transaksi berhasil ditambahkan');</script>";
-    } else {
-        echo "<script>alert('Gagal menambahkan transaksi');</script>";
-    }
+    echo "<script>alert('Transaksi berhasil disimpan');</script>";
+}
+
+/* ===============================
+   DATA CUSTOMER
+================================ */
+$customers = [];
+$q = mysqli_query($conn, "SELECT id, nama FROM customers");
+while ($r = mysqli_fetch_assoc($q)) {
+    $customers[] = $r;
 }
 ?>
 
@@ -35,53 +47,69 @@ if (isset($_POST['simpan'])) {
             margin-top: 10px;
         }
 
-        input,
-        select {
-            width: 300px;
-            padding: 6px;
+        .list {
+            border: 1px solid #ccc;
+            max-height: 150px;
+            overflow-y: auto;
+            display: none;
+            position: absolute;
+            background: white;
+            width: 200px;
+        }
+
+        .item {
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        .item:hover {
+            background: #eee;
         }
     </style>
 </head>
 
 <body>
 
-    <h2>Input Transaksi Laundry</h2>
+    <h2>Transaksi Laundry</h2>
 
     <form method="POST">
 
-        <label>Tanggal</label>
-        <input type="text" value="<?= date('d-m-Y H:i'); ?>" readonly>
+        <label>Tanggal & Waktu</label>
+        <input type="text" value="<?= date('Y-m-d H:i:s'); ?>" readonly>
 
-        <label>Pelanggan</label>
-        <select name="customer_id" required>
-            <option value="">-- Pilih Pelanggan --</option>
-            <?php
-            $cust = mysqli_query($koneksi, "SELECT * FROM customers");
-            while ($c = mysqli_fetch_assoc($cust)) {
-                echo "<option value='{$c['id']}'>{$c['nama']} - {$c['no_telp']}</option>";
-            }
-            ?>
-        </select>
+        <!-- AUTOCOMPLETE CUSTOMER -->
+        <label>Nama Pelanggan</label>
+        <input type="text" id="nama" autocomplete="off" required>
+        <input type="hidden" name="customer_id" id="customer_id">
 
+        <div id="list" class="list"></div>
+
+        <br>
+        <a href="pelanggan_tambah.php" id="btnTambah" style="display:none;">
+            <button type="button">+ Tambah Pelanggan</button>
+        </a>
+
+        <!-- PAKET -->
         <label>Paket Laundry</label>
-        <select name="package_id" id="package" onchange="hitungTotal()" required>
+        <select id="paket" required onchange="hitung()">
             <option value="">-- Pilih Paket --</option>
-            <?php
-            $paket = mysqli_query($koneksi, "SELECT * FROM packages");
-            while ($p = mysqli_fetch_assoc($paket)) {
-                echo "<option value='{$p['id']}' data-harga='{$p['harga_per_kg']}'>
-                    {$p['nama_paket']} (Rp {$p['harga_per_kg']}/kg)
-                  </option>";
-            }
-            ?>
+            <option value="5000">Cuci Kering - Reguler</option>
+            <option value="8000">Cuci Kering - Express</option>
+            <option value="7000">Cuci Setrika - Reguler</option>
+            <option value="10000">Cuci Setrika - Express</option>
+            <option value="6000">Setrika - Reguler</option>
+            <option value="9000">Setrika - Express</option>
         </select>
+
+        <!-- harga paket (hidden, untuk backend) -->
+        <input type="hidden" name="harga_paket" id="harga_paket">
 
         <label>Berat (Kg)</label>
-        <input type="number" name="berat_kg" id="berat_kg" step="0.01" onkeyup="hitungTotal()" required>
+        <input type="number" step="0.1" id="berat" name="berat_kg" required oninput="hitung()">
 
+        <!-- TOTAL OTOMATIS -->
         <label>Total Harga</label>
-        <input type="text" id="total_view" readonly>
-        <input type="hidden" name="total_harga" id="total_harga">
+        <input type="text" id="total" readonly>
 
         <br><br>
         <button type="submit" name="simpan">Simpan Transaksi</button>
@@ -89,17 +117,93 @@ if (isset($_POST['simpan'])) {
     </form>
 
     <script>
-        function hitungTotal() {
-            let paket = document.getElementById("package");
-            let harga = paket.options[paket.selectedIndex]?.getAttribute("data-harga") || 0;
-            let berat = document.getElementById("berat_kg").value || 0;
+        const customers = <?= json_encode($customers); ?>;
+        const input = document.getElementById('nama');
+        const list = document.getElementById('list');
+        const hiddenId = document.getElementById('customer_id');
+        const btnTambah = document.getElementById('btnTambah');
 
-            let total = harga * berat;
+        input.addEventListener('keyup', function () {
+            let key = this.value.toLowerCase();
+            list.innerHTML = '';
+            let found = false;
 
-            document.getElementById("total_view").value =
-                "Rp " + Number(total).toLocaleString('id-ID');
-            document.getElementById("total_harga").value = total;
+            if (key === '') {
+                list.style.display = 'none';
+                btnTambah.style.display = 'none';
+                return;
+            }
+
+            customers.forEach(c => {
+                if (c.nama.toLowerCase().includes(key)) {
+                    found = true;
+                    let div = document.createElement('div');
+                    div.className = 'item';
+                    div.textContent = c.nama;
+                    div.onclick = () => {
+                        input.value = c.nama;
+                        hiddenId.value = c.id;
+                        list.style.display = 'none';
+                        btnTambah.style.display = 'none';
+                    };
+                    list.appendChild(div);
+                }
+            });
+
+            list.style.display = found ? 'block' : 'none';
+            btnTambah.style.display = found ? 'none' : 'inline';
+        });
+
+        function hitung() {
+            let harga = document.getElementById('paket').value;
+            let berat = document.getElementById('berat').value;
+
+            document.getElementById('harga_paket').value = harga;
+
+            if (harga && berat) {
+                document.getElementById('total').value = harga * berat;
+            } else {
+                document.getElementById('total').value = '';
+            }
         }
+
+        input.addEventListener('keyup', function () {
+            let key = this.value.toLowerCase();
+            list.innerHTML = '';
+            let found = false;
+
+            if (key === '') {
+                list.style.display = 'none';
+                btnTambah.style.display = 'none';
+                return;
+            }
+
+            customers.forEach(c => {
+                if (c.nama.toLowerCase().includes(key)) {
+                    found = true;
+                    let div = document.createElement('div');
+                    div.className = 'item';
+                    div.textContent = c.nama;
+                    div.onclick = () => {
+                        input.value = c.nama;
+                        hiddenId.value = c.id;
+                        list.style.display = 'none';
+                        btnTambah.style.display = 'none';
+                    };
+                    list.appendChild(div);
+                }
+            });
+
+            if (!found) {
+                btnTambah.style.display = 'inline';
+                btnTambah.href = "pelanggan_tambah.php?nama=" + encodeURIComponent(input.value);
+            } else {
+                btnTambah.style.display = 'none';
+            }
+
+            list.style.display = found ? 'block' : 'none';
+        });
+
     </script>
 
 </body>

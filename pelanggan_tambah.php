@@ -29,4 +29,6 @@ if(isset($_POST['simpan'])){
 
     header("location:pelanggan.php");
 }
+
+$nama_awal = isset($_GET['nama']) ? $_GET['nama'] : '';
 ?>
