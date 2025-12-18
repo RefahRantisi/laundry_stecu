@@ -76,19 +76,30 @@ if ($login) {
 </head>
 <body>
 
-<!-- NAVBAR -->
 <div class="navbar">
     <a href="index.php">Dashboard</a>
-    <a href="pelanggan.php">Data Pelanggan</a>
-    <a href="transaksi.php">Transaksi</a>
-    <a href="status.php">Status Laundry</a>
-    <a href="laporan.php">Laporan</a>
 
+    <?php if ($login): ?>
+        <a href="pelanggan.php">Data Pelanggan</a>
+        <a href="transaksi.php">Transaksi</a>
+        <a href="status.php">Status Laundry</a>
+        <a href="laporan.php">Laporan</a>
+    <?php else: ?>
+        <a href="#" onclick="alert('Silakan login terlebih dahulu')">Data Pelanggan</a>
+        <a href="#" onclick="alert('Silakan login terlebih dahulu')">Transaksi</a>
+        <a href="#" onclick="alert('Silakan login terlebih dahulu')">Status Laundry</a>
+        <a href="#" onclick="alert('Silakan login terlebih dahulu')">Laporan</a>
+    <?php endif; ?>
+
+    <!-- LOGIN / SIGNUP -->
     <?php if (!$login): ?>
-        <a href="login.php">Login</a>
-        <a href="signup.php">Sign Up</a>
+        <a href="login.php" style="background:#1abc9c;">Login</a>
+        <a href="signup.php" style="background:#3498db;">Sign Up</a>
+    <?php else: ?>
+        <span style="color:white;">👋 <?= $_SESSION['admin_user']; ?></span>
     <?php endif; ?>
 </div>
+
 
 <!-- CONTENT -->
 <div class="container">
