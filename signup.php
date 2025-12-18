@@ -12,34 +12,35 @@ if ($conn->connect_error) {
 }
 
 $error = '';
-$success = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = trim($_POST['username']);
     $password = $_POST['password'];
-    $confirm = $_POST['confirm_password'];
-    
+
     if (empty($username) || empty($password)) {
         $error = "Username dan password harus diisi!";
-    } elseif (strlen($password) < 6) {
-        $error = "Password minimal 6 karakter!";
-    } elseif ($password != $confirm) {
-        $error = "Password tidak cocok!";
     } else {
-        // Cek username
-        $check = $conn->query("SELECT id FROM users WHERE username = '$username'");
-        if ($check->num_rows > 0) {
-            $error = "Username sudah digunakan!";
-        } else {
-            // Insert user
-            $hashed = password_hash($password, PASSWORD_DEFAULT);
-            $sql = "INSERT INTO users (username, password) VALUES ('$username', '$hashed')";
+        // Cari user berdasarkan username
+        $sql = "SELECT * FROM users WHERE username = '$username'";
+        $result = $conn->query($sql);
+
+        if ($result->num_rows > 0) {
+            $user = $result->fetch_assoc();
             
-            if ($conn->query($sql)) {
-                $success = "Registrasi berhasil! Silakan login.";
+            // Verifikasi password hash
+            if (password_verify($password, $user['password'])) {
+                // Login Berhasil - Set Session
+                $_SESSION['admin_id'] = $user['id'];
+                $_SESSION['admin_user'] = $user['username'];
+                
+                // Arahkan ke dashboard
+                header("Location: dashboard.php");
+                exit();
             } else {
-                $error = "Gagal mendaftar: " . $conn->error;
+                $error = "Password salah!";
             }
+        } else {
+            $error = "Username tidak ditemukan!";
         }
     }
 }
@@ -47,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Sign Up - Laundry STECU</title>
+    <title>Login Admin - Laundry STECU</title>
     <style>
         body {
             margin: 0;
@@ -87,12 +88,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             border: 1px solid #fcc;
         }
 
-        .alert-success {
-            background: #efe;
-            color: #3c3;
-            border: 1px solid #cfc;
-        }
-
         form {
             width: 100%;
         }
@@ -122,53 +117,49 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         input[type="text"]:focus,
         input[type="password"]:focus {
             outline: none;
-            border-color: #1abc9c;
+            border-color: #2c3e50;
         }
 
         button[type="submit"] {
             width: 100%;
             padding: 12px;
-            background: #2c3e50;
-            color: white;
+            background: #2c3e50 !important;
+            color: white !important;
             border: none;
             border-radius: 6px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.3s;
+            transition: background 0.3s;
         }
 
         button[type="submit"]:hover {
-            background: #1abc9c;
+            background: #34495e !important;
         }
 
-        .login-link {
+        .signup-link {
             text-align: center;
             margin-top: 20px;
-            color: #2c3e50;
+            color: #555;
         }
 
-        .login-link a {
-            color: #1abc9c;
+        .signup-link a {
+            color: #2c3e50;
             text-decoration: none;
             font-weight: bold;
         }
 
-        .login-link a:hover {
+        .signup-link a:hover {
             text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Sign Up - Laundry STECU</h2>
+        <h2>Login Admin - Laundry STECU</h2>
         
         <?php if ($error): ?>
             <div class="alert alert-error"><?php echo $error; ?></div>
-        <?php endif; ?>
-        
-        <?php if ($success): ?>
-            <div class="alert alert-success"><?php echo $success; ?></div>
         <?php endif; ?>
         
         <form method="POST">
@@ -182,15 +173,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <input type="password" name="password" required>
             </div>
             
-            <div class="form-group">
-                <label>Konfirmasi Password:</label>
-                <input type="password" name="confirm_password" required>
-            </div>
-            
-            <button type="submit">Daftar</button>
+            <button type="submit">Masuk</button>
         </form>
         
-        <p class="login-link">Sudah punya akun? <a href="login.php">Login</a></p>
+        <p class="signup-link">Belum punya akun? <a href="signup.php">Daftar Sekarang</a></p>
     </div>
 </body>
 </html>
