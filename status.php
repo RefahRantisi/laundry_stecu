@@ -2,14 +2,14 @@
 session_start();
 include 'koneksi.php';
 
-/* ================= UPDATE STATUS TRANSAKSI ================= */
-if (isset($_POST['status_id'], $_POST['transaksi_id'])) {
+/* ================= UPDATE STATUS ================= */
+if (isset($_POST['transaksi_id'], $_POST['status_id'])) {
 
     $transaksi_id = (int) $_POST['transaksi_id'];
-    $status_id = (int) $_POST['status_id'];
+    $status_id    = (int) $_POST['status_id'];
 
     mysqli_query($conn, "
-        UPDATE transactions 
+        UPDATE transactions
         SET status_id = $status_id
         WHERE id = $transaksi_id
     ");
@@ -18,15 +18,15 @@ if (isset($_POST['status_id'], $_POST['transaksi_id'])) {
     exit;
 }
 
-/* ================= AMBIL DATA TRANSAKSI (BELUM SELESAI) ================= */
+/* ================= AMBIL TRANSAKSI (KECUALI SELESAI) ================= */
 $data = mysqli_query($conn, "
     SELECT 
         t.id AS transaksi_id,
         t.package_id,
+        t.status_id,
         c.nama AS pelanggan,
         p.nama_paket,
-        s.nama_status,
-        t.status_id
+        s.nama_status
     FROM transactions t
     JOIN customers c ON t.customer_id = c.id
     JOIN laundry_packages p ON t.package_id = p.id
@@ -38,16 +38,17 @@ $data = mysqli_query($conn, "
 
 <!DOCTYPE html>
 <html>
-
 <head>
     <title>Status Laundry</title>
+
     <style>
         body {
             margin: 0;
-            font-family: Arial;
+            font-family: Arial, sans-serif;
             background: #f4f4f4;
         }
 
+        /* ===== NAVBAR ===== */
         .navbar {
             background: #2c3e50;
             padding: 15px;
@@ -68,6 +69,7 @@ $data = mysqli_query($conn, "
             background: #1abc9c;
         }
 
+        /* ===== CONTAINER ===== */
         .container {
             max-width: 1000px;
             margin: auto;
@@ -78,6 +80,7 @@ $data = mysqli_query($conn, "
             background: white;
             padding: 25px;
             border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,.1);
         }
 
         table {
@@ -97,36 +100,29 @@ $data = mysqli_query($conn, "
             text-align: center;
         }
 
+        /* ===== BUTTON FLEKSIBEL ===== */
         .status-btn {
-            padding: 6px 14px;
+            padding: 7px 16px;
             border-radius: 6px;
             border: none;
             font-weight: bold;
             cursor: pointer;
-            color: white;
+            color: #fff;
+            background: linear-gradient(135deg, #1abc9c, #16a085);
         }
 
-        .status-btn[data-status="Diterima"] {
-            background: #e74c3c;
+        .status-btn:hover {
+            opacity: 0.85;
         }
 
-        .status-btn[data-status="Dicuci"] {
-            background: #f1c40f;
-            color: black;
-        }
-
-        .status-btn[data-status="Disetrika"] {
-            background: #2ecc71;
-        }
-
-        .status-btn[data-status="Selesai"] {
-            background: #2c3e50;
+        form {
+            margin: 0;
         }
     </style>
 
     <script>
         function konfirmasi(status) {
-            return confirm("Apakah Anda ingin mengubah status menjadi " + status + "?");
+            return confirm("Ubah status menjadi \"" + status + "\" ?");
         }
     </script>
 </head>
@@ -150,12 +146,13 @@ $data = mysqli_query($conn, "
                 <th>ID</th>
                 <th>Pelanggan</th>
                 <th>Paket</th>
-                <th>Status</th>
+                <th>Status Saat Ini</th>
                 <th>Aksi</th>
             </tr>
 
             <?php while ($row = mysqli_fetch_assoc($data)) {
 
+                /* === AMBIL ALUR STATUS SESUAI PAKET === */
                 $alur = mysqli_query($conn, "
                     SELECT psf.status_id, s.nama_status
                     FROM package_status_flow psf
@@ -169,6 +166,7 @@ $data = mysqli_query($conn, "
                     $list[] = $a;
                 }
 
+                /* === CARI STATUS BERIKUTNYA (MAJU 1 STEP) === */
                 $next = null;
                 for ($i = 0; $i < count($list); $i++) {
                     if ($list[$i]['status_id'] == $row['status_id']) {
@@ -188,14 +186,16 @@ $data = mysqli_query($conn, "
                         <form method="post">
                             <input type="hidden" name="transaksi_id" value="<?= $row['transaksi_id'] ?>">
                             <button
+                                type="submit"
                                 name="status_id"
                                 value="<?= $next['status_id'] ?>"
                                 class="status-btn"
-                                data-status="<?= $next['nama_status'] ?>"
                                 onclick="return konfirmasi('<?= $next['nama_status'] ?>')">
                                 <?= $next['nama_status'] ?>
                             </button>
                         </form>
+                    <?php else: ?>
+                        <strong>Selesai</strong>
                     <?php endif; ?>
                 </td>
             </tr>
