@@ -1,36 +1,39 @@
 <?php
+session_start();
 include 'koneksi.php';
 
-/* CREATE */
-if (isset($_POST['simpan'])) {
-    mysqli_query($conn, "INSERT INTO laundry_status VALUES (NULL, '$_POST[nama_status]')");
+/* ================= UPDATE STATUS TRANSAKSI ================= */
+if (isset($_POST['status_id']) && isset($_POST['transaksi_id'])) {
+    $transaksi_id = $_POST['transaksi_id'];
+    $status_id    = $_POST['status_id'];
+
+    mysqli_query($conn, "
+        UPDATE transactions 
+        SET status_id = '$status_id'
+        WHERE id = '$transaksi_id'
+    ");
 }
 
-/* UPDATE */
-if (isset($_POST['update'])) {
-    mysqli_query($conn, "UPDATE laundry_status 
-        SET nama_status='$_POST[nama_status]' 
-        WHERE id=$_POST[id]");
-}
-
-/* DELETE */
-if (isset($_GET['hapus'])) {
-    mysqli_query($conn, "DELETE FROM laundry_status WHERE id=$_GET[hapus]");
-}
-
-/* EDIT MODE */
-$edit = null;
-if (isset($_GET['edit'])) {
-    $q = mysqli_query($conn, "SELECT * FROM laundry_status WHERE id=$_GET[edit]");
-    $edit = mysqli_fetch_assoc($q);
-}
+/* ================= AMBIL DATA TRANSAKSI ================= */
+$data = mysqli_query($conn, "
+    SELECT 
+        t.id AS transaksi_id,
+        c.nama AS pelanggan,
+        p.nama_paket,
+        s.nama_status,
+        t.status_id
+    FROM transactions t
+    JOIN customers c ON t.customer_id = c.id
+    JOIN laundry_packages p ON t.package_id = p.id
+    JOIN laundry_status s ON t.status_id = s.id
+    ORDER BY t.id DESC
+");
 ?>
 
 <!DOCTYPE html>
 <html>
 <head>
     <title>Status Laundry</title>
-
     <style>
         body {
             margin: 0;
@@ -62,7 +65,7 @@ if (isset($_GET['edit'])) {
 
         /* ===== CONTENT ===== */
         .container {
-            max-width: 1000px;
+            max-width: 1100px;
             margin: auto;
             padding: 30px;
         }
@@ -79,46 +82,16 @@ if (isset($_GET['edit'])) {
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
-        /* ===== FORM ===== */
-        label {
-            font-weight: bold;
-            display: block;
-            margin-bottom: 6px;
-        }
-
-        input[type="text"] {
-            width: 300px;
-            padding: 8px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-        }
-
-        button {
-            padding: 8px 18px;
-            border: none;
-            border-radius: 6px;
-            background: #1abc9c;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        button:hover {
-            background: #16a085;
-        }
-
         /* ===== TABLE ===== */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 25px;
         }
 
         table th {
             background: #2c3e50;
             color: white;
-            padding: 10px;
+            padding: 12px;
         }
 
         table td {
@@ -128,25 +101,37 @@ if (isset($_GET['edit'])) {
             text-align: center;
         }
 
-        .action a {
-            text-decoration: none;
+        /* ===== TOMBOL STATUS ===== */
+        .status-btn {
+            padding: 6px 12px;
+            margin: 2px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
             font-weight: bold;
-            margin: 0 6px;
+            color: white;
+            transition: 0.3s;
         }
 
-        .action a.edit {
-            color: #2980b9;
-        }
+        .btn-diterima { background: #3498db; }
+        .btn-diterima:hover { background: #2980b9; }
 
-        .action a.delete {
-            color: #e74c3c;
-        }
+        .btn-dicuci { background: #f39c12; }
+        .btn-dicuci:hover { background: #d35400; }
+
+        .btn-disetrika { background: #9b59b6; }
+        .btn-disetrika:hover { background: #8e44ad; }
+
+        .btn-selesai { background: #2ecc71; }
+        .btn-selesai:hover { background: #27ae60; }
+
+        form.inline { display: inline-block; margin: 0; }
     </style>
 </head>
 
 <body>
 
-<!-- NAVBAR -->
+<!-- ===== NAVBAR ===== -->
 <div class="navbar">
     <a href="dashboard.php">Dashboard</a>
     <a href="pelanggan.php">Data Pelanggan</a>
@@ -155,43 +140,34 @@ if (isset($_GET['edit'])) {
     <a href="laporan.php">Laporan</a>
 </div>
 
-<!-- CONTENT -->
+<!-- ===== CONTENT ===== -->
 <div class="container">
-    <h2>Manajemen Status Laundry</h2>
+    <h2>Status Laundry</h2>
 
     <div class="card">
-        <form method="post">
-            <input type="hidden" name="id" value="<?= $edit['id'] ?? '' ?>">
-
-            <label>Nama Status</label>
-            <input type="text" name="nama_status"
-                   value="<?= $edit['nama_status'] ?? '' ?>" required>
-
-            <br>
-            <button type="submit" name="<?= $edit ? 'update' : 'simpan' ?>">
-                <?= $edit ? 'Update' : 'Simpan' ?>
-            </button>
-        </form>
-
         <table>
             <tr>
-                <th>No</th>
-                <th>Nama Status</th>
-                <th>Aksi</th>
+                <th>ID Transaksi</th>
+                <th>Pelanggan</th>
+                <th>Paket</th>
+                <th>Status Saat Ini</th>
+                <th>Ubah Status</th>
             </tr>
 
-            <?php
-            $no = 1;
-            $q = mysqli_query($conn, "SELECT * FROM laundry_status");
-            while ($d = mysqli_fetch_assoc($q)) {
-            ?>
+            <?php while ($row = mysqli_fetch_assoc($data)) { ?>
             <tr>
-                <td><?= $no++ ?></td>
-                <td><?= $d['nama_status'] ?></td>
-                <td class="action">
-                    <a class="edit" href="?edit=<?= $d['id'] ?>">Edit</a>
-                    <a class="delete" href="?hapus=<?= $d['id'] ?>"
-                       onclick="return confirm('Hapus status ini?')">Hapus</a>
+                <td><?= $row['transaksi_id']; ?></td>
+                <td><?= $row['pelanggan']; ?></td>
+                <td><?= $row['nama_paket']; ?></td>
+                <td><?= $row['nama_status']; ?></td>
+                <td>
+                    <form method="post" class="inline">
+                        <input type="hidden" name="transaksi_id" value="<?= $row['transaksi_id']; ?>">
+                        <button type="submit" name="status_id" value="1" class="status-btn btn-diterima">Diterima</button>
+                        <button type="submit" name="status_id" value="2" class="status-btn btn-dicuci">Dicuci</button>
+                        <button type="submit" name="status_id" value="3" class="status-btn btn-disetrika">Disetrika</button>
+                        <button type="submit" name="status_id" value="4" class="status-btn btn-selesai">Selesai</button>
+                    </form>
                 </td>
             </tr>
             <?php } ?>
