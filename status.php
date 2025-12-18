@@ -129,14 +129,15 @@ $data = mysqli_query($conn, "
 
 <body>
 
-<div class="navbar">
-    <a href="dashboard.php">Dashboard</a>
-    <a href="pelanggan.php">Pelanggan</a>
-    <a href="transaksi.php">Transaksi</a>
-    <a href="status.php">Status Laundry</a>
-    <a href="laporan.php">Laporan</a>
-    <a href="pengaturan.php">Pengaturan</a>
-</div>
+<!-- NAVBAR -->
+    <div class="navbar">
+        <a href="dashboard.php">Dashboard</a>
+        <a href="pelanggan.php">Data Pelanggan</a>
+        <a href="transaksi.php">Transaksi</a>
+        <a href="status.php">Status Laundry</a>
+        <a href="laporan.php">Laporan</a>
+        <a href="pengaturan.php">Pengaturan</a>
+    </div>
 
 <div class="container">
     <h2>Status Laundry</h2>
