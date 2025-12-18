@@ -89,6 +89,17 @@ $data = mysqli_query($conn, "SELECT * FROM laundry_status ORDER BY id DESC");
             padding: 8px;
         }
 
+        form button[type="submit"] {
+            padding: 10px 20px;
+            background: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
         .aksi a {
             margin-right: 8px;
             text-decoration: none;
