@@ -35,56 +35,33 @@ $data = mysqli_query($conn, "
 <head>
     <title>Status Laundry</title>
     <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-        }
+        body { margin:0; font-family: Arial, sans-serif; background:#f4f4f4; }
+        .navbar { background:#2c3e50; padding:15px; display:flex; justify-content:center; gap:12px; }
+        .navbar a { color:white; text-decoration:none; font-weight:bold; padding:10px 18px; border-radius:6px; transition:0.3s; }
+        .navbar a:hover { background:#1abc9c; }
 
-        .navbar {
-            background: #2c3e50;
-            padding: 15px;
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-        }
+        .container { max-width:1100px; margin:auto; padding:30px; }
+        h2 { margin-bottom:20px; }
+        .card { background:white; padding:25px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.1); }
 
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-            padding: 10px 18px;
-            border-radius: 6px;
-            transition: 0.3s;
-        }
+        table { width:100%; border-collapse:collapse; }
+        table th { background:#2c3e50; color:white; padding:12px; }
+        table td { padding:10px; background:white; border-bottom:1px solid #ddd; text-align:center; }
 
-        .navbar a:hover { background: #1abc9c; }
+        .status-btn { padding:6px 12px; margin:2px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; color:white; transition:0.3s; }
+        .btn-diterima { background:#3498db; } .btn-diterima:hover { background:#2980b9; }
+        .btn-dicuci { background:#f39c12; } .btn-dicuci:hover { background:#d35400; }
+        .btn-disetrika { background:#9b59b6; } .btn-disetrika:hover { background:#8e44ad; }
+        .btn-selesai { background:#2ecc71; } .btn-selesai:hover { background:#27ae60; }
 
-        .container { max-width: 1100px; margin: auto; padding: 30px; }
-        h2 { margin-bottom: 20px; }
-
-        .card {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        table { width: 100%; border-collapse: collapse; }
-        table th { background: #2c3e50; color: white; padding: 12px; }
-        table td { padding: 10px; background: white; border-bottom: 1px solid #ddd; text-align: center; }
-
-        .status-btn { padding: 6px 12px; margin: 2px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; }
-        .btn-diterima { background: #3498db; }
-        .btn-diterima:hover { background: #2980b9; }
-        .btn-dicuci { background: #f39c12; }
-        .btn-dicuci:hover { background: #d35400; }
-        .btn-disetrika { background: #9b59b6; }
-        .btn-disetrika:hover { background: #8e44ad; }
-        .btn-selesai { background: #2ecc71; }
-        .btn-selesai:hover { background: #27ae60; }
-        form.inline { display: inline-block; margin: 0; }
+        form.inline { display:inline-block; margin:0; }
     </style>
+    <script>
+        // Fungsi konfirmasi sesuai tombol
+        function konfirmasi(statusLabel) {
+            return confirm("Apakah Anda ingin mengubah status menjadi " + statusLabel + "?");
+        }
+    </script>
 </head>
 <body>
 
@@ -140,7 +117,13 @@ $data = mysqli_query($conn, "
                         <input type="hidden" name="transaksi_id" value="<?= $row['transaksi_id']; ?>">
                         <?php foreach($status_paket as $id => $label): ?>
                             <?php if($id > $status_saat_ini): ?>
-                                <button type="submit" name="status_id" value="<?= $id ?>" class="status-btn btn-<?= strtolower($label) ?>"><?= $label ?></button>
+                                <button type="submit" 
+                                        name="status_id" 
+                                        value="<?= $id ?>" 
+                                        class="status-btn btn-<?= strtolower($label) ?>" 
+                                        onclick="return konfirmasi('<?= $label ?>')">
+                                    <?= $label ?>
+                                </button>
                             <?php endif; ?>
                         <?php endforeach; ?>
                     </form>
