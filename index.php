@@ -2,19 +2,24 @@
 session_start();
 include 'koneksi.php';
 
-$totalOrder = mysqli_fetch_assoc(
-    mysqli_query($conn, "SELECT COUNT(*) AS total FROM transactions")
-);
+// cek status login
+$login = isset($_SESSION['login']);
 
-$proses = mysqli_fetch_assoc(
-    mysqli_query($conn, "SELECT COUNT(*) AS total FROM transactions WHERE status_id != 4")
-);
+// ambil data HANYA kalau sudah login
+if ($login) {
+    $totalOrder = mysqli_fetch_assoc(
+        mysqli_query($conn, "SELECT COUNT(*) AS total FROM transactions")
+    );
 
-$selesai = mysqli_fetch_assoc(
-    mysqli_query($conn, "SELECT COUNT(*) AS total FROM transactions WHERE status_id = 4")
-);
+    $proses = mysqli_fetch_assoc(
+        mysqli_query($conn, "SELECT COUNT(*) AS total FROM transactions WHERE status_id != 4")
+    );
+
+    $selesai = mysqli_fetch_assoc(
+        mysqli_query($conn, "SELECT COUNT(*) AS total FROM transactions WHERE status_id = 4")
+    );
+}
 ?>
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -25,8 +30,6 @@ $selesai = mysqli_fetch_assoc(
             font-family: Arial, sans-serif;
             background: #f4f4f4;
         }
-
-        /* ===== NAVBAR ===== */
         .navbar {
             background: #2c3e50;
             padding: 15px;
@@ -34,63 +37,46 @@ $selesai = mysqli_fetch_assoc(
             justify-content: center;
             gap: 12px;
         }
-
         .navbar a {
             color: white;
             text-decoration: none;
             font-weight: bold;
             padding: 10px 18px;
             border-radius: 6px;
-            transition: 0.3s;
         }
-
         .navbar a:hover {
             background: #1abc9c;
         }
-
-        /* ===== CONTENT ===== */
         .container {
             max-width: 1000px;
             margin: auto;
             padding: 30px;
         }
-
-        h2 {
-            margin-bottom: 5px;
-        }
-
         .cards {
             display: flex;
-            justify-content: center;
             gap: 20px;
             margin-top: 30px;
+            justify-content: center;
         }
-
         .card {
             background: white;
             padding: 25px;
             width: 220px;
             border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-
-        .card h3 {
-            margin: 0;
-            color: #555;
-            font-size: 18px;
-        }
-
-        .card p {
-            font-size: 32px;
-            font-weight: bold;
-            margin-top: 10px;
+        .notice {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
 
-<!-- ===== NAVBAR ===== -->
+<!-- NAVBAR -->
 <div class="navbar">
     <a href="index.php">Dashboard</a>
     <a href="pelanggan.php">Data Pelanggan</a>
