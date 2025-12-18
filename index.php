@@ -85,7 +85,7 @@ if ($login) {
         <a href="transaksi.php">Transaksi</a>
         <a href="status.php">Status Laundry</a>
         <a href="laporan.php">Laporan</a>
-        <span>Login <?= $_SESSION['admin_user']; ?></span>
+        <a href="login.php" style="background:#e74c3c">Logout</a>  
     <?php else: ?>
         <span>Data Pelanggan</span>
         <span>Transaksi</span>
