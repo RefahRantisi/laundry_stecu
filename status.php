@@ -36,7 +36,6 @@ $data = mysqli_query($conn, "
 ");
 ?>
 
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -116,44 +115,38 @@ $data = mysqli_query($conn, "
                 $status_saat_ini = (int)$row['status_id'];
                 $nama_paket = $row['nama_paket'];
 
-                // Tentukan tombol aksi sesuai paket
-                $status_paket = [];
+                // Tentukan urutan status sesuai paket
+                $urutan_status = [];
                 switch ($nama_paket) {
-
                     case 'Cuci Kering - Reguler':
                     case 'Cuci Kering - Express':
-                        $status_paket = [
-                            1 => 'Diterima',
-                            2 => 'Dicuci',
-                            4 => 'Selesai'
-                        ];
+                        $urutan_status = [1 => 'Diterima', 2 => 'Dicuci', 4 => 'Selesai'];
                         break;
 
                     case 'Cuci Setrika - Reguler':
                     case 'Cuci Setrika - Express':
-                        $status_paket = [
-                            1 => 'Diterima',
-                            2 => 'Dicuci',
-                            3 => 'Disetrika',
-                            4 => 'Selesai'
-                        ];
+                        $urutan_status = [1 => 'Diterima', 2 => 'Dicuci', 3 => 'Disetrika', 4 => 'Selesai'];
                         break;
 
                     case 'Setrika - Reguler':
                     case 'Setrika - Express':
-                        $status_paket = [
-                            1 => 'Diterima',
-                            3 => 'Disetrika',
-                            4 => 'Selesai'
-                        ];
+                        $urutan_status = [1 => 'Diterima', 3 => 'Disetrika', 4 => 'Selesai'];
+                        break;
+
+                    default:
+                        $urutan_status = [1 => 'Diterima', 2 => 'Dicuci', 3 => 'Disetrika', 4 => 'Selesai'];
                         break;
                 }
 
-
-                // Tombol aktif hanya yang lebih tinggi dari status saat ini
-                $tombol_aktif = array_filter($status_paket, function($label, $id) use ($status_saat_ini) {
-                    return $id > $status_saat_ini;
-                }, ARRAY_FILTER_USE_BOTH);
+                // Cari status berikutnya saja
+                $keys = array_keys($urutan_status);
+                $nextStatus = null;
+                foreach($keys as $k){
+                    if($k > $status_saat_ini){
+                        $nextStatus = [$k => $urutan_status[$k]];
+                        break;
+                    }
+                }
             ?>
             <tr>
                 <td><?= $row['transaksi_id']; ?></td>
@@ -161,18 +154,22 @@ $data = mysqli_query($conn, "
                 <td><?= $row['nama_paket']; ?></td>
                 <td><?= $row['nama_status']; ?></td>
                 <td>
-                    <form method="post" class="inline">
-                        <input type="hidden" name="transaksi_id" value="<?= $row['transaksi_id']; ?>">
-                        <?php foreach($tombol_aktif as $id => $label): ?>
-                            <button type="submit" 
-                                    name="status_id" 
-                                    value="<?= $id ?>" 
-                                    class="status-btn btn-<?= strtolower($label) ?>" 
-                                    onclick="return konfirmasi('<?= $label ?>')">
-                                <?= $label ?>
-                            </button>
-                        <?php endforeach; ?>
-                    </form>
+                    <?php if($nextStatus): ?>
+                        <form method="post" class="inline">
+                            <input type="hidden" name="transaksi_id" value="<?= $row['transaksi_id']; ?>">
+                            <?php foreach($nextStatus as $id => $label): ?>
+                                <button type="submit" 
+                                        name="status_id" 
+                                        value="<?= $id ?>" 
+                                        class="status-btn btn-<?= strtolower($label) ?>" 
+                                        onclick="return konfirmasi('<?= $label ?>')">
+                                    <?= $label ?>
+                                </button>
+                            <?php endforeach; ?>
+                        </form>
+                    <?php else: ?>
+                        <span>-</span>
+                    <?php endif; ?>
                 </td>
             </tr>
             <?php } ?>
