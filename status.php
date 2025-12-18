@@ -6,7 +6,7 @@ include 'koneksi.php';
 if (isset($_POST['transaksi_id'], $_POST['status_id'])) {
 
     $transaksi_id = (int) $_POST['transaksi_id'];
-    $status_id    = (int) $_POST['status_id'];
+    $status_id = (int) $_POST['status_id'];
 
     mysqli_query($conn, "
         UPDATE transactions
@@ -38,14 +38,32 @@ $data = mysqli_query($conn, "
 
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Status Laundry</title>
 
     <style>
-        body {
+        body { 
             margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        ::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+        }
+
+        body {
+            background-color: #f4f6f9;
+            color: #333;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
 
         /* ===== NAVBAR ===== */
@@ -71,16 +89,18 @@ $data = mysqli_query($conn, "
 
         /* ===== CONTAINER ===== */
         .container {
-            max-width: 1000px;
-            margin: auto;
             padding: 30px;
         }
 
+        h2 {
+            margin-bottom: 20px;
+        }
+
         .card {
-            background: white;
-            padding: 25px;
+            background: #fff;
+            padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
         table {
@@ -129,7 +149,7 @@ $data = mysqli_query($conn, "
 
 <body>
 
-<!-- NAVBAR -->
+    <!-- NAVBAR -->
     <div class="navbar">
         <a href="dashboard.php">Dashboard</a>
         <a href="pelanggan.php">Data Pelanggan</a>
@@ -139,23 +159,23 @@ $data = mysqli_query($conn, "
         <a href="pengaturan.php">Pengaturan</a>
     </div>
 
-<div class="container">
-    <h2>Status Laundry</h2>
+    <div class="container">
+        <h2>Status Laundry</h2>
 
-    <div class="card">
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Pelanggan</th>
-                <th>Paket</th>
-                <th>Status Saat Ini</th>
-                <th>Aksi</th>
-            </tr>
+        <div class="card">
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Pelanggan</th>
+                    <th>Paket</th>
+                    <th>Status Saat Ini</th>
+                    <th>Aksi</th>
+                </tr>
 
-            <?php while ($row = mysqli_fetch_assoc($data)) {
+                <?php while ($row = mysqli_fetch_assoc($data)) {
 
-                /* === AMBIL ALUR STATUS SESUAI PAKET === */
-                $alur = mysqli_query($conn, "
+                    /* === AMBIL ALUR STATUS SESUAI PAKET === */
+                    $alur = mysqli_query($conn, "
                     SELECT psf.status_id, s.nama_status
                     FROM package_status_flow psf
                     JOIN laundry_status s ON psf.status_id = s.id
@@ -163,49 +183,46 @@ $data = mysqli_query($conn, "
                     ORDER BY psf.urutan
                 ");
 
-                $list = [];
-                while ($a = mysqli_fetch_assoc($alur)) {
-                    $list[] = $a;
-                }
-
-                /* === CARI STATUS BERIKUTNYA (MAJU 1 STEP) === */
-                $next = null;
-                for ($i = 0; $i < count($list); $i++) {
-                    if ($list[$i]['status_id'] == $row['status_id']) {
-                        $next = $list[$i + 1] ?? null;
-                        break;
+                    $list = [];
+                    while ($a = mysqli_fetch_assoc($alur)) {
+                        $list[] = $a;
                     }
-                }
-            ?>
 
-            <tr>
-                <td><?= $row['transaksi_id'] ?></td>
-                <td><?= $row['pelanggan'] ?></td>
-                <td><?= $row['nama_paket'] ?></td>
-                <td><?= $row['nama_status'] ?></td>
-                <td>
-                    <?php if ($next): ?>
-                        <form method="post">
-                            <input type="hidden" name="transaksi_id" value="<?= $row['transaksi_id'] ?>">
-                            <button
-                                type="submit"
-                                name="status_id"
-                                value="<?= $next['status_id'] ?>"
-                                class="status-btn"
-                                onclick="return konfirmasi('<?= $next['nama_status'] ?>')">
-                                <?= $next['nama_status'] ?>
-                            </button>
-                        </form>
-                    <?php else: ?>
-                        <strong>Selesai</strong>
-                    <?php endif; ?>
-                </td>
-            </tr>
+                    /* === CARI STATUS BERIKUTNYA (MAJU 1 STEP) === */
+                    $next = null;
+                    for ($i = 0; $i < count($list); $i++) {
+                        if ($list[$i]['status_id'] == $row['status_id']) {
+                            $next = $list[$i + 1] ?? null;
+                            break;
+                        }
+                    }
+                    ?>
 
-            <?php } ?>
-        </table>
+                    <tr>
+                        <td><?= $row['transaksi_id'] ?></td>
+                        <td><?= $row['pelanggan'] ?></td>
+                        <td><?= $row['nama_paket'] ?></td>
+                        <td><?= $row['nama_status'] ?></td>
+                        <td>
+                            <?php if ($next): ?>
+                                <form method="post">
+                                    <input type="hidden" name="transaksi_id" value="<?= $row['transaksi_id'] ?>">
+                                    <button type="submit" name="status_id" value="<?= $next['status_id'] ?>" class="status-btn"
+                                        onclick="return konfirmasi('<?= $next['nama_status'] ?>')">
+                                        <?= $next['nama_status'] ?>
+                                    </button>
+                                </form>
+                            <?php else: ?>
+                                <strong>Selesai</strong>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+
+                <?php } ?>
+            </table>
+        </div>
     </div>
-</div>
 
 </body>
+
 </html>
