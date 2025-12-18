@@ -3,7 +3,7 @@ session_start();
 include 'koneksi.php';
 
 // cek status login
-$login = isset($_SESSION['login']);
+$login = isset($_SESSION['admin_id']);
 
 // ambil data HANYA kalau sudah login
 if ($login) {
