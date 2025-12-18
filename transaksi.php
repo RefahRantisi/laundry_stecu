@@ -77,9 +77,26 @@ if (isset($_POST['simpan'])) {
     $total = $harga_paket * $berat;
 
     /* ===============================
-       INSERT TRANSAKSI
+    AMBIL STATUS PERTAMA DARI ALUR PAKET
     =============================== */
-    $status_id = 1; // diterima
+    $q_status_awal = mysqli_query($conn, "
+    SELECT status_id
+    FROM package_status_flow
+    WHERE package_id = '$package_id'
+    ORDER BY urutan ASC
+    LIMIT 1
+    ");
+
+    if (mysqli_num_rows($q_status_awal) == 0) {
+        echo "<script>
+        alert('Paket ini belum memiliki alur status. Silakan atur di pengaturan.');
+        history.back();
+    </script>";
+        exit;
+    }
+
+    $row_status = mysqli_fetch_assoc($q_status_awal);
+    $status_id = $row_status['status_id'];
 
     mysqli_query(
         $conn,

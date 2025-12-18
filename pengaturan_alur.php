@@ -33,11 +33,29 @@ if (isset($_GET['tambah'])) {
    HAPUS STATUS DARI PAKET
 ===================== */
 if (isset($_GET['hapus'])) {
+
     $flow_id = (int) $_GET['hapus'];
-    mysqli_query($conn, "DELETE FROM package_status_flow WHERE id='$flow_id'");
+
+    // cek apakah status ini wajib
+    $cek = mysqli_query($conn, "
+        SELECT s.is_required
+        FROM package_status_flow psf
+        JOIN laundry_status s ON psf.status_id = s.id
+        WHERE psf.id = '$flow_id'
+    ");
+
+    $row = mysqli_fetch_assoc($cek);
+
+    if ($row['is_required']) {
+        echo "<script>alert('Status ini wajib dan tidak bisa dinonaktifkan');</script>";
+    } else {
+        mysqli_query($conn, "DELETE FROM package_status_flow WHERE id='$flow_id'");
+    }
+
     header("Location: pengaturan_alur.php?paket_id=$paket_id");
     exit;
 }
+
 
 /* =====================
    UPDATE URUTAN (AJAX)
@@ -71,7 +89,9 @@ if ($paket_id) {
         FROM package_status_flow psf
         JOIN laundry_status s ON psf.status_id = s.id
         WHERE psf.package_id='$paket_id'
-        ORDER BY psf.urutan
+        ORDER BY 
+    s.is_fixed DESC,
+    psf.urutan ASC
     ");
     while ($r = mysqli_fetch_assoc($q)) {
         $status_aktif[] = $r;
