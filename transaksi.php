@@ -25,9 +25,15 @@ $display_value = ($nama_url && $telp_url)
     : '';
 
 /* ===============================
-   AMBIL DATA PAKET LAUNDRY
+   AMBIL DATA PAKET LAUNDRY (HANYA AKTIF)
 =============================== */
-$pakets = mysqli_query($conn, "SELECT * FROM laundry_packages");
+$pakets = mysqli_query(
+    $conn,
+    "SELECT id, nama_paket, harga_per_kg 
+     FROM laundry_packages 
+     WHERE is_active = 1
+     ORDER BY nama_paket ASC"
+);
 
 /* ===============================
    SIMPAN TRANSAKSI
@@ -40,7 +46,7 @@ if (isset($_POST['simpan'])) {
     $customer_id = intval($_POST['customer_id']);
 
     /* ===============================
-       VALIDASI CUSTOMER (WAJIB ID)
+       VALIDASI CUSTOMER
     =============================== */
     $cek_customer = mysqli_query(
         $conn,
@@ -56,54 +62,62 @@ if (isset($_POST['simpan'])) {
     }
 
     /* ===============================
-       VALIDASI PAKET (FK)
+       VALIDASI PAKET (HARUS AKTIF)
     =============================== */
     $cek_paket = mysqli_query(
         $conn,
-        "SELECT harga_per_kg FROM laundry_packages WHERE id = $package_id"
+        "SELECT harga_per_kg 
+         FROM laundry_packages 
+         WHERE id = $package_id AND is_active = 1
+         LIMIT 1"
     );
 
     if (mysqli_num_rows($cek_paket) == 0) {
         echo "<script>
-            alert('Paket laundry tidak valid');
+            alert('Paket laundry tidak tersedia / sudah nonaktif');
             history.back();
         </script>";
         exit;
     }
 
-    // ambil harga asli dari database (anti manipulasi)
+    // ambil harga resmi
     $row_paket = mysqli_fetch_assoc($cek_paket);
     $harga_paket = $row_paket['harga_per_kg'];
     $total = $harga_paket * $berat;
 
     /* ===============================
-    AMBIL STATUS PERTAMA DARI ALUR PAKET
+       AMBIL STATUS AWAL (HARUS AKTIF)
     =============================== */
     $q_status_awal = mysqli_query($conn, "
-    SELECT status_id
-    FROM package_status_flow
-    WHERE package_id = '$package_id'
-    ORDER BY urutan ASC
-    LIMIT 1
+        SELECT psf.status_id
+        FROM package_status_flow psf
+        JOIN laundry_status ls ON psf.status_id = ls.id
+        WHERE psf.package_id = $package_id
+          AND ls.is_active = 1
+        ORDER BY psf.urutan ASC
+        LIMIT 1
     ");
 
     if (mysqli_num_rows($q_status_awal) == 0) {
         echo "<script>
-        alert('Paket ini belum memiliki alur status. Silakan atur di pengaturan.');
-        history.back();
-    </script>";
+            alert('Paket ini belum memiliki alur status aktif.');
+            history.back();
+        </script>";
         exit;
     }
 
     $row_status = mysqli_fetch_assoc($q_status_awal);
     $status_id = $row_status['status_id'];
 
+    /* ===============================
+       SIMPAN TRANSAKSI
+    =============================== */
     mysqli_query(
         $conn,
         "INSERT INTO transactions
         (tanggal, customer_id, package_id, berat_kg, total_harga, status_id)
         VALUES
-        ('$tanggal', '$customer_id', '$package_id', '$berat', '$total', '$status_id')"
+        ('$tanggal', $customer_id, $package_id, '$berat', '$total', $status_id)"
     );
 
     echo "<script>
@@ -112,7 +126,6 @@ if (isset($_POST['simpan'])) {
     </script>";
 }
 ?>
-
 
 <!DOCTYPE html>
 <html>
@@ -285,14 +298,22 @@ if (isset($_POST['simpan'])) {
                 <select name="package_id" id="paket" required onchange="setHarga()">
                     <option value="">-- Pilih Paket --</option>
                     <?php
-                    $pakets = mysqli_query($conn, "SELECT * FROM laundry_packages");
+                    $pakets = mysqli_query(
+                        $conn,
+                        "SELECT id, nama_paket, harga_per_kg
+                        FROM laundry_packages
+                        WHERE is_active = 1
+                        ORDER BY nama_paket ASC"
+                    );
                     while ($p = mysqli_fetch_assoc($pakets)):
                         ?>
                         <option value="<?= $p['id']; ?>" data-harga="<?= $p['harga_per_kg']; ?>">
-                            <?= $p['nama_paket']; ?> (Rp <?= number_format($p['harga_per_kg']); ?>/kg)
+                            <?= $p['nama_paket']; ?>
+                            (Rp <?= number_format($p['harga_per_kg']); ?>/kg)
                         </option>
                     <?php endwhile; ?>
                 </select>
+
 
                 <input type="hidden" name="harga_paket" id="harga_paket">
 

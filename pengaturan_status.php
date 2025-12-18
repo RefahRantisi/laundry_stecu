@@ -2,7 +2,7 @@
 include 'koneksi.php';
 
 /* =========================
-   HANDLE TAMBAH
+   TAMBAH STATUS
 ========================= */
 if (isset($_POST['tambah'])) {
     $nama = mysqli_real_escape_string($conn, $_POST['nama_status']);
@@ -17,19 +17,34 @@ if (isset($_POST['tambah'])) {
 }
 
 /* =========================
-   HANDLE NONAKTIF (SOFT DELETE)
+   NONAKTIFKAN STATUS (AMAN FK)
 ========================= */
 if (isset($_GET['hapus'])) {
     $id = (int) $_GET['hapus'];
 
-    // HAPUS RELASI FLOW (AMAN)
-    mysqli_query($conn, "DELETE FROM package_status_flow WHERE status_id=$id");
+    // Cek dipakai transaksi atau tidak
+    $cek = mysqli_query($conn, "
+        SELECT id FROM transactions WHERE status_id='$id' LIMIT 1
+    ");
 
-    // NONAKTIFKAN STATUS (JANGAN DELETE!)
+    if (mysqli_num_rows($cek) > 0) {
+        echo "<script>
+            alert('Status sudah dipakai transaksi, tidak bisa dihapus.');
+            window.location='pengaturan_status.php';
+        </script>";
+        exit;
+    }
+
+    // nonaktifkan
     mysqli_query($conn, "
         UPDATE laundry_status 
-        SET is_active=0 
-        WHERE id=$id
+        SET is_active = 0 
+        WHERE id='$id'
+    ");
+
+    // hapus dari alur paket
+    mysqli_query($conn, "
+        DELETE FROM package_status_flow WHERE status_id='$id'
     ");
 
     header("Location: pengaturan_status.php");
@@ -37,11 +52,11 @@ if (isset($_GET['hapus'])) {
 }
 
 /* =========================
-   DATA LIST
+   DATA LIST (AKTIF SAJA)
 ========================= */
 $data = mysqli_query($conn, "
-    SELECT * FROM laundry_status 
-    WHERE is_active=1
+    SELECT * FROM laundry_status
+    WHERE is_active = 1
     ORDER BY id DESC
 ");
 ?>
