@@ -1,4 +1,5 @@
 <?php
+session_start();
 include 'koneksi.php';
 
 /* ================= UPDATE STATUS TRANSAKSI ================= */
@@ -25,6 +26,7 @@ $data = mysqli_query($conn, "
     JOIN customers c ON t.customer_id = c.id
     JOIN laundry_packages p ON t.package_id = p.id
     JOIN laundry_status s ON t.status_id = s.id
+    WHERE t.status_id < 4
     ORDER BY t.id DESC
 ");
 ?>
@@ -56,7 +58,6 @@ $data = mysqli_query($conn, "
         form.inline { display:inline-block; margin:0; }
     </style>
     <script>
-        // Fungsi konfirmasi sesuai tombol
         function konfirmasi(statusLabel) {
             return confirm("Apakah Anda ingin mengubah status menjadi " + statusLabel + "?");
         }
