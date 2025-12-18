@@ -1,4 +1,15 @@
-<?php include 'koneksi.php'; ?>
+<?php
+session_start();
+if (!isset($_SESSION['login'])) {
+    echo "<script>
+        alert('Silakan login terlebih dahulu');
+        window.location='index.php';
+    </script>";
+    exit;
+}
+include 'koneksi.php';
+?>
+
 <!DOCTYPE html>
 <html>
 <head>
