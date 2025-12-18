@@ -103,136 +103,238 @@ if (isset($_POST['simpan'])) {
 <head>
     <title>Transaksi Laundry</title>
     <style>
-        label {
-            display: block;
-            margin-top: 10px;
+        ::-webkit-scrollbar {
+            width: 0;
+            height: 0;
         }
 
-        .autocomplete {
-            border: 1px solid #ccc;
-            max-height: 150px;
-            overflow-y: auto;
-            display: none;
-            position: absolute;
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        /* ===== NAVBAR ===== */
+        .navbar {
+            background: #2c3e50;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 10px 18px;
+            border-radius: 6px;
+            transition: 0.3s;
+        }
+
+        .navbar a:hover {
+            background: #1abc9c;
+        }
+
+        /* ===== CONTAINER ===== */
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        /* ===== CARD ===== */
+        .card {
             background: white;
-            width: 250px;
-            z-index: 99;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .item {
-            padding: 6px;
+        /* ===== FORM ELEMENTS ===== */
+        form label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        form input[type="text"],
+        form input[type="number"],
+        form select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        form button[type="submit"] {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        form button[type="submit"]:hover {
+            background: #27ae60;
+        }
+
+        form button[type="button"] {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        /* ===== AUTOCOMPLETE LIST ===== */
+        .autocomplete {
+            position: relative;
+        }
+
+        .autocomplete .item {
+            background: #fff;
+            padding: 8px;
+            border: 1px solid #ddd;
             cursor: pointer;
         }
 
-        .item:hover {
-            background: #eee;
+        .autocomplete .item:hover {
+            background: #f1f1f1;
         }
     </style>
 </head>
 
 <body>
 
-    <h2>Transaksi Laundry</h2>
+    <!-- NAVBAR -->
+    <div class="navbar">
+        <a href="dashboard.php">Dashboard</a>
+        <a href="pelanggan.php">Data Pelanggan</a>
+        <a href="transaksi.php">Transaksi</a>
+        <a href="status.php">Status Laundry</a>
+        <a href="laporan.php">Laporan</a>
+    </div>
 
-    <form method="POST">
+    <div class="container">
+        <h2>Transaksi Laundry</h2>
 
-        <label>Tanggal & Waktu</label>
-        <input type="text" value="<?= date('Y-m-d H:i:s'); ?>" readonly>
+        <div class="card">
+            <form method="POST">
+                <label>Tanggal & Waktu</label>
+                <input type="text" value="<?= date('Y-m-d H:i:s'); ?>" readonly>
 
-        <label>Nama Pelanggan</label>
-        <input type="text" id="customer_display" name="customer_display"
-            value="<?= htmlspecialchars($display_value); ?>" autocomplete="off" required>
+                <label>Nama Pelanggan</label>
+                <input type="text" id="customer_display" name="customer_display"
+                    value="<?= htmlspecialchars($display_value); ?>" autocomplete="off" required>
 
-        <input type="hidden" name="customer_id" id="customer_id" value="<?= htmlspecialchars($customer_id_url); ?>">
+                <input type="hidden" name="customer_id" id="customer_id"
+                    value="<?= htmlspecialchars($customer_id_url); ?>">
+                <div id="list" class="autocomplete"></div>
 
-        <div id="list" class="autocomplete"></div>
+                <!-- TOMBOL TAMBAH PELANGGAN -->
+                <a id="btnTambah" style="display:none; margin-top:15px;">
+                    <button type="button">+ Tambah Pelanggan</button>
+                </a>
 
-        <br>
-        <a id="btnTambah" style="display:none;">
-            <button type="button">+ Tambah Pelanggan</button>
-        </a>
+                <label>Paket Laundry</label>
+                <select name="package_id" id="paket" required onchange="setHarga()">
+                    <option value="">-- Pilih Paket --</option>
+                    <?php
+                    $pakets = mysqli_query($conn, "SELECT * FROM laundry_packages");
+                    while ($p = mysqli_fetch_assoc($pakets)):
+                        ?>
+                        <option value="<?= $p['id']; ?>" data-harga="<?= $p['harga_per_kg']; ?>">
+                            <?= $p['nama_paket']; ?> (Rp <?= number_format($p['harga_per_kg']); ?>/kg)
+                        </option>
+                    <?php endwhile; ?>
+                </select>
 
+                <input type="hidden" name="harga_paket" id="harga_paket">
 
-        <!-- PAKET DARI DATABASE -->
-        <label>Paket Laundry</label>
-        <select name="package_id" id="paket" required onchange="setHarga()">
-            <option value="">-- Pilih Paket --</option>
-            <?php
-            $pakets = mysqli_query($conn, "SELECT * FROM laundry_packages");
-            while ($p = mysqli_fetch_assoc($pakets)):
-                ?>
-                <option value="<?= $p['id']; ?>" data-harga="<?= $p['harga_per_kg']; ?>">
-                    <?= $p['nama_paket']; ?> (Rp <?= number_format($p['harga_per_kg']); ?>/kg)
-                </option>
-            <?php endwhile; ?>
-        </select>
+                <label>Berat (Kg)</label>
+                <input type="number" step="0.1" name="berat_kg" id="berat" oninput="hitungTotal()" required>
 
-        <input type="hidden" name="harga_paket" id="harga_paket">
+                <label>Total Harga</label>
+                <input type="text" id="total" readonly>
 
-        <label>Berat (Kg)</label>
-        <input type="number" step="0.1" name="berat_kg" id="berat" oninput="hitungTotal()" required>
-
-        <label>Total Harga</label>
-        <input type="text" id="total" readonly>
-
-        <br><br>
-        <button type="submit" name="simpan">Simpan Transaksi</button>
-
-    </form>
+                <button type="submit" name="simpan">Simpan Transaksi</button>
+            </form>
+        </div>
+    </div>
 
     <script>
         /* ===============================
            AUTOCOMPLETE CUSTOMER
         =============================== */
         const customers = <?= json_encode($customers); ?>;
-            const input = document.getElementById('customer_display');
-            const list = document.getElementById('list');
-            const hiddenId = document.getElementById('customer_id');
-            const btnTambah = document.getElementById('btnTambah');
+        const input = document.getElementById('customer_display');
+        const list = document.getElementById('list');
+        const hiddenId = document.getElementById('customer_id');
+        const btnTambah = document.getElementById('btnTambah');
 
-            input.addEventListener('keyup', function () {
-                const key = this.value.toLowerCase();
-                list.innerHTML = '';
-                let found = false;
+        input.addEventListener('keyup', function () {
+            const key = this.value.toLowerCase();
+            list.innerHTML = '';
+            let found = false;
 
-                if (!key) {
-                    list.style.display = 'none';
-                    hiddenId.value = '';
-                    btnTambah.style.display = 'none';
-                    return;
+            if (!key) {
+                list.style.display = 'none';
+                hiddenId.value = '';
+                btnTambah.style.display = 'none';
+                return;
+            }
+
+            customers.forEach(c => {
+                const display = `${c.nama} - ${c.no_telp}`;
+
+                if (display.toLowerCase().includes(key)) {
+                    found = true;
+                    const div = document.createElement('div');
+                    div.className = 'item';
+                    div.textContent = display;
+
+                    div.onclick = () => {
+                        input.value = display;
+                        hiddenId.value = c.id;
+                        list.style.display = 'none';
+                        btnTambah.style.display = 'none';
+                    };
+
+                    list.appendChild(div);
                 }
-
-                customers.forEach(c => {
-                    const display = `${c.nama} - ${c.no_telp}`;
-
-                    if (display.toLowerCase().includes(key)) {
-                        found = true;
-                        const div = document.createElement('div');
-                        div.className = 'item';
-                        div.textContent = display;
-
-                        div.onclick = () => {
-                            input.value = display;
-                            hiddenId.value = c.id;
-                            list.style.display = 'none';
-                            btnTambah.style.display = 'none';
-                        };
-
-                        list.appendChild(div);
-                    }
-                });
-
-                if (!found) {
-                    btnTambah.style.display = 'inline';
-                    btnTambah.href =
-                        "pelanggan_tambah.php?nama=" + encodeURIComponent(input.value);
-                    hiddenId.value = '';
-                } else {
-                    btnTambah.style.display = 'none';
-                }
-
-                list.style.display = found ? 'block' : 'none';
             });
+
+            if (!found) {
+                btnTambah.style.display = 'inline';
+                btnTambah.href =
+                    "pelanggan_tambah.php?nama=" + encodeURIComponent(input.value);
+                hiddenId.value = '';
+            } else {
+                btnTambah.style.display = 'none';
+            }
+
+            list.style.display = found ? 'block' : 'none';
+        });
 
         /* ===============================
            HITUNG TOTAL
@@ -254,6 +356,8 @@ if (isset($_POST['simpan'])) {
                     : '';
         }
     </script>
+    </div>
+
 
 </body>
 
