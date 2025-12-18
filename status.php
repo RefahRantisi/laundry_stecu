@@ -3,15 +3,20 @@ session_start();
 include 'koneksi.php';
 
 /* ================= UPDATE STATUS TRANSAKSI ================= */
-if (isset($_POST['status_id']) && isset($_POST['transaksi_id'])) {
-    $transaksi_id = $_POST['transaksi_id'];
-    $status_id    = $_POST['status_id'];
+if (isset($_POST['status_id'], $_POST['transaksi_id'])) {
+
+    $transaksi_id = (int) $_POST['transaksi_id'];
+    $status_id = (int) $_POST['status_id'];
 
     mysqli_query($conn, "
         UPDATE transactions 
-        SET status_id = '$status_id'
-        WHERE id = '$transaksi_id'
+        SET status_id = $status_id
+        WHERE id = $transaksi_id
     ");
+
+    // redirect agar tidak double submit & jelas hasilnya
+    header("Location: status.php?updated=1");
+    exit;
 }
 
 /* ================= AMBIL DATA TRANSAKSI ================= */
@@ -30,6 +35,7 @@ $data = mysqli_query($conn, "
     ORDER BY t.id DESC
 ");
 ?>
+
 
 <!DOCTYPE html>
 <html>
@@ -112,20 +118,37 @@ $data = mysqli_query($conn, "
 
                 // Tentukan tombol aksi sesuai paket
                 $status_paket = [];
-                switch($nama_paket) {
-                    case 'Cuci Kering Reguler':
-                    case 'Cuci Kering Express':
-                        $status_paket = [1 => 'Diterima', 2 => 'Dicuci', 4 => 'Selesai'];
+                switch ($nama_paket) {
+
+                    case 'Cuci Kering - Reguler':
+                    case 'Cuci Kering - Express':
+                        $status_paket = [
+                            1 => 'Diterima',
+                            2 => 'Dicuci',
+                            4 => 'Selesai'
+                        ];
                         break;
-                    case 'Cuci Setrika Reguler':
-                    case 'Cuci Setrika Express':
-                        $status_paket = [1 => 'Diterima', 2 => 'Dicuci', 3 => 'Disetrika', 4 => 'Selesai'];
+
+                    case 'Cuci Setrika - Reguler':
+                    case 'Cuci Setrika - Express':
+                        $status_paket = [
+                            1 => 'Diterima',
+                            2 => 'Dicuci',
+                            3 => 'Disetrika',
+                            4 => 'Selesai'
+                        ];
                         break;
-                    case 'Setrika Reguler':
-                    case 'Setrika Express':
-                        $status_paket = [1 => 'Diterima', 3 => 'Disetrika', 4 => 'Selesai'];
+
+                    case 'Setrika - Reguler':
+                    case 'Setrika - Express':
+                        $status_paket = [
+                            1 => 'Diterima',
+                            3 => 'Disetrika',
+                            4 => 'Selesai'
+                        ];
                         break;
                 }
+
 
                 // Tombol aktif hanya yang lebih tinggi dari status saat ini
                 $tombol_aktif = array_filter($status_paket, function($label, $id) use ($status_saat_ini) {
