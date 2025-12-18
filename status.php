@@ -14,7 +14,6 @@ if (isset($_POST['status_id'], $_POST['transaksi_id'])) {
         WHERE id = $transaksi_id
     ");
 
-    // redirect agar tidak double submit & jelas hasilnya
     header("Location: status.php?updated=1");
     exit;
 }
@@ -107,9 +106,9 @@ $data = mysqli_query($conn, "
             text-align: center;
         }
 
-        /* ===== BUTTON STATUS ===== */
+        /* ===== BUTTON STATUS (DASAR) ===== */
         .status-btn {
-            padding: 6px 12px;
+            padding: 6px 14px;
             margin: 2px;
             border: none;
             border-radius: 6px;
@@ -119,36 +118,34 @@ $data = mysqli_query($conn, "
             transition: 0.3s;
         }
 
-        .btn-diterima {
-            background: #3498db;
+        /* ===== WARNA BERDASARKAN STATUS ===== */
+        .status-btn[data-status="Diterima"] {
+            background: #e74c3c;
+        }
+        .status-btn[data-status="Diterima"]:hover {
+            background: #c0392b;
         }
 
-        .btn-diterima:hover {
-            background: #2980b9;
+        .status-btn[data-status="Dicuci"] {
+            background: #f1c40f;
+            color: #000;
+        }
+        .status-btn[data-status="Dicuci"]:hover {
+            background: #d4ac0d;
         }
 
-        .btn-dicuci {
-            background: #f39c12;
-        }
-
-        .btn-dicuci:hover {
-            background: #d35400;
-        }
-
-        .btn-disetrika {
-            background: #9b59b6;
-        }
-
-        .btn-disetrika:hover {
-            background: #8e44ad;
-        }
-
-        .btn-selesai {
+        .status-btn[data-status="Disetrika"] {
             background: #2ecc71;
         }
-
-        .btn-selesai:hover {
+        .status-btn[data-status="Disetrika"]:hover {
             background: #27ae60;
+        }
+
+        .status-btn[data-status="Selesai"] {
+            background: #2c3e50;
+        }
+        .status-btn[data-status="Selesai"]:hover {
+            background: #000;
         }
 
         form.inline {
@@ -156,6 +153,7 @@ $data = mysqli_query($conn, "
             margin: 0;
         }
     </style>
+
     <script>
         function konfirmasi(statusLabel) {
             return confirm("Apakah Anda ingin mengubah status menjadi " + statusLabel + "?");
@@ -194,21 +192,19 @@ $data = mysqli_query($conn, "
                     $package_id = $row['package_id'];
                     $status_saat_ini = (int) $row['status_id'];
 
-                    // Ambil SEMUA alur status paket
                     $alur = mysqli_query($conn, "
-        SELECT psf.id AS flow_id, psf.status_id, s.nama_status
-        FROM package_status_flow psf
-        JOIN laundry_status s ON psf.status_id = s.id
-        WHERE psf.package_id = '$package_id'
-        ORDER BY psf.urutan
-    ");
+                        SELECT psf.status_id, s.nama_status
+                        FROM package_status_flow psf
+                        JOIN laundry_status s ON psf.status_id = s.id
+                        WHERE psf.package_id = '$package_id'
+                        ORDER BY psf.urutan
+                    ");
 
                     $status_list = [];
                     while ($a = mysqli_fetch_assoc($alur)) {
                         $status_list[] = $a;
                     }
 
-                    // Cari status saat ini di alur
                     $next_status = null;
                     for ($i = 0; $i < count($status_list); $i++) {
                         if ($status_list[$i]['status_id'] == $status_saat_ini) {
@@ -216,7 +212,7 @@ $data = mysqli_query($conn, "
                             break;
                         }
                     }
-                    ?>
+                ?>
 
                     <tr>
                         <td><?= $row['transaksi_id']; ?></td>
@@ -227,17 +223,22 @@ $data = mysqli_query($conn, "
                             <?php if ($next_status): ?>
                                 <form method="post" class="inline">
                                     <input type="hidden" name="transaksi_id" value="<?= $transaksi_id ?>">
-                                    <button type="submit" name="status_id" value="<?= $next_status['status_id'] ?>"
-                                        class="status-btn" onclick="return konfirmasi('<?= $next_status['nama_status'] ?>')">
+                                    <button
+                                        type="submit"
+                                        name="status_id"
+                                        value="<?= $next_status['status_id'] ?>"
+                                        class="status-btn"
+                                        data-status="<?= $next_status['nama_status'] ?>"
+                                        onclick="return konfirmasi('<?= $next_status['nama_status'] ?>')">
                                         <?= $next_status['nama_status'] ?>
                                     </button>
                                 </form>
                             <?php else: ?>
-                                <span>Selesai</span>
+                                <strong>Selesai</strong>
                             <?php endif; ?>
                         </td>
-
                     </tr>
+
                 <?php } ?>
 
             </table>
