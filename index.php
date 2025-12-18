@@ -85,7 +85,7 @@ if ($login) {
         <a href="transaksi.php">Transaksi</a>
         <a href="status.php">Status Laundry</a>
         <a href="laporan.php">Laporan</a>
-        <a href="login.php" style="background:#e74c3c">Logout</a>  
+        <a href="login.php" style="background:#2c3e50">Login</a>  
     <?php else: ?>
         <span>Data Pelanggan</span>
         <span>Transaksi</span>
