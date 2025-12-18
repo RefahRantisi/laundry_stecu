@@ -5,11 +5,11 @@ include 'koneksi.php';
    HANDLE TAMBAH
 ========================= */
 if (isset($_POST['tambah'])) {
-    $nama = $_POST['nama_status'];
+    $nama = mysqli_real_escape_string($conn, $_POST['nama_status']);
 
     mysqli_query($conn, "
-        INSERT INTO laundry_status (nama_status)
-        VALUES ('$nama')
+        INSERT INTO laundry_status (nama_status, is_active)
+        VALUES ('$nama', 1)
     ");
 
     header("Location: pengaturan_status.php");
@@ -17,14 +17,20 @@ if (isset($_POST['tambah'])) {
 }
 
 /* =========================
-   HANDLE HAPUS
+   HANDLE NONAKTIF (SOFT DELETE)
 ========================= */
 if (isset($_GET['hapus'])) {
-    $id = $_GET['hapus'];
+    $id = (int) $_GET['hapus'];
 
-    // hapus relasi alur dulu
-    mysqli_query($conn, "DELETE FROM package_status_flow WHERE status_id='$id'");
-    mysqli_query($conn, "DELETE FROM laundry_status WHERE id='$id'");
+    // HAPUS RELASI FLOW (AMAN)
+    mysqli_query($conn, "DELETE FROM package_status_flow WHERE status_id=$id");
+
+    // NONAKTIFKAN STATUS (JANGAN DELETE!)
+    mysqli_query($conn, "
+        UPDATE laundry_status 
+        SET is_active=0 
+        WHERE id=$id
+    ");
 
     header("Location: pengaturan_status.php");
     exit;
@@ -33,8 +39,13 @@ if (isset($_GET['hapus'])) {
 /* =========================
    DATA LIST
 ========================= */
-$data = mysqli_query($conn, "SELECT * FROM laundry_status ORDER BY id DESC");
+$data = mysqli_query($conn, "
+    SELECT * FROM laundry_status 
+    WHERE is_active=1
+    ORDER BY id DESC
+");
 ?>
+
 
 <!DOCTYPE html>
 <html>

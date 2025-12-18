@@ -5,22 +5,22 @@ include 'koneksi.php';
    HANDLE TAMBAH / EDIT
 ========================= */
 if (isset($_POST['simpan'])) {
-    $nama = $_POST['nama_paket'];
-    $harga = $_POST['harga_per_kg'];
+    $nama = mysqli_real_escape_string($conn, $_POST['nama_paket']);
+    $harga = mysqli_real_escape_string($conn, $_POST['harga_per_kg']);
 
     if (!empty($_POST['id'])) {
         // EDIT
-        $id = $_POST['id'];
+        $id = (int) $_POST['id'];
         mysqli_query($conn, "
             UPDATE laundry_packages 
             SET nama_paket='$nama', harga_per_kg='$harga' 
-            WHERE id='$id'
+            WHERE id=$id
         ");
     } else {
         // TAMBAH
         mysqli_query($conn, "
-            INSERT INTO laundry_packages (nama_paket, harga_per_kg)
-            VALUES ('$nama', '$harga')
+            INSERT INTO laundry_packages (nama_paket, harga_per_kg, is_active)
+            VALUES ('$nama', '$harga', 1)
         ");
     }
 
@@ -29,34 +29,45 @@ if (isset($_POST['simpan'])) {
 }
 
 /* =========================
-   HANDLE HAPUS
+   HANDLE HAPUS (SOFT DELETE)
 ========================= */
 if (isset($_GET['hapus'])) {
-    $id = $_GET['hapus'];
+    $id = (int) $_GET['hapus'];
 
-    // hapus alur paket dulu (jaga konsistensi)
-    mysqli_query($conn, "DELETE FROM package_status_flow WHERE package_id='$id'");
-    mysqli_query($conn, "DELETE FROM laundry_packages WHERE id='$id'");
+    // hapus alur paket dulu
+    mysqli_query($conn, "DELETE FROM package_status_flow WHERE package_id=$id");
+
+    // soft delete paket
+    mysqli_query($conn, "UPDATE laundry_packages SET is_active=0 WHERE id=$id");
 
     header("Location: pengaturan_paket.php");
     exit;
 }
 
 /* =========================
-   DATA UNTUK EDIT
+   DATA UNTUK EDIT (FIX BUG)
 ========================= */
 $edit = null;
 if (isset($_GET['edit'])) {
-    $id = $_GET['edit'];
-    $q = mysqli_query($conn, "SELECT * FROM laundry_packages WHERE id='$id'");
+    $id = (int) $_GET['edit'];
+    $q = mysqli_query($conn, "
+        SELECT * FROM laundry_packages 
+        WHERE id=$id AND is_active=1
+        LIMIT 1
+    ");
     $edit = mysqli_fetch_assoc($q);
 }
 
 /* =========================
    DATA LIST
 ========================= */
-$data = mysqli_query($conn, "SELECT * FROM laundry_packages ORDER BY id DESC");
+$data = mysqli_query($conn, "
+    SELECT * FROM laundry_packages 
+    WHERE is_active=1 
+    ORDER BY id DESC
+");
 ?>
+
 
 <!DOCTYPE html>
 <html>
