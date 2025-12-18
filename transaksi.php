@@ -120,15 +120,25 @@ if (isset($_POST['simpan'])) {
 <head>
     <title>Transaksi Laundry</title>
     <style>
+        body {
+            margin: 0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
         ::-webkit-scrollbar {
             width: 0;
             height: 0;
         }
 
         body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
+            background-color: #f4f6f9;
+            color: #333;
             scrollbar-width: none;
             -ms-overflow-style: none;
         }
@@ -157,22 +167,19 @@ if (isset($_POST['simpan'])) {
 
         /* ===== CONTAINER ===== */
         .container {
-            max-width: 1000px;
-            margin: auto;
             padding: 30px;
         }
 
         h2 {
-            margin-bottom: 15px;
-            color: #333;
+            margin-bottom: 20px;
         }
 
         /* ===== CARD ===== */
         .card {
-            background: white;
-            padding: 25px;
+            background: #fff;
+            padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
         /* ===== FORM ELEMENTS ===== */
