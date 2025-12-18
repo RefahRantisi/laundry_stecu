@@ -82,6 +82,11 @@ if ($paket_id) {
     <title>Pengaturan Alur Status</title>
 
     <style>
+        ::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+        }
+        
         body {
             font-family: Arial, sans-serif;
             background: #f4f4f4;

@@ -94,8 +94,18 @@ $data = mysqli_query($conn, "SELECT * FROM laundry_status ORDER BY id DESC");
             text-decoration: none;
         }
 
-        .hapus {
-            color: red;
+        .btn {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
         }
     </style>
 </head>
@@ -128,7 +138,7 @@ $data = mysqli_query($conn, "SELECT * FROM laundry_status ORDER BY id DESC");
                 <td><?= $row['nama_status'] ?></td>
                 <td class="aksi">
                     <a href="?hapus=<?= $row['id'] ?>"
-                       class="hapus"
+                       class="btn btn-delete"
                        onclick="return confirm('Hapus status ini?')">
                         Hapus
                     </a>

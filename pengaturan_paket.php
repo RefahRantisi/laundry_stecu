@@ -116,8 +116,22 @@ $data = mysqli_query($conn, "SELECT * FROM laundry_packages ORDER BY id DESC");
             text-decoration: none;
         }
 
-        .hapus {
-            color: red;
+        .btn {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .btn-edit {
+            background: #f39c12;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
         }
     </style>
 </head>
@@ -162,8 +176,8 @@ $data = mysqli_query($conn, "SELECT * FROM laundry_packages ORDER BY id DESC");
                     <td><?= $row['nama_paket'] ?></td>
                     <td>Rp <?= number_format($row['harga_per_kg']) ?></td>
                     <td class="aksi">
-                        <a href="?edit=<?= $row['id'] ?>">Edit</a>
-                        <a href="?hapus=<?= $row['id'] ?>" class="hapus"
+                        <a href="?edit=<?= $row['id'] ?>" class="btn btn-edit">Edit</a>
+                        <a href="?hapus=<?= $row['id'] ?>" class="btn btn-delete"
                            onclick="return confirm('Hapus paket ini?')">
                             Hapus
                         </a>
