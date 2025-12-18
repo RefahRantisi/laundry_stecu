@@ -36,7 +36,6 @@ if (isset($_GET['hapus'])) {
 
     $flow_id = (int) $_GET['hapus'];
 
-    // cek apakah status ini wajib
     $cek = mysqli_query($conn, "
         SELECT s.is_required
         FROM package_status_flow psf
@@ -56,26 +55,6 @@ if (isset($_GET['hapus'])) {
     exit;
 }
 
-
-/* =====================
-   UPDATE URUTAN (AJAX)
-===================== */
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['data'])) {
-
-    foreach ($_POST['data'] as $d) {
-        $id = (int) $d['id'];
-        $urut = (int) $d['urutan'];
-
-        mysqli_query($conn, "
-            UPDATE package_status_flow
-            SET urutan='$urut'
-            WHERE id='$id'
-        ");
-    }
-
-    exit; // PENTING: hentikan proses setelah AJAX
-}
-
 /* =====================
    DATA
 ===================== */
@@ -89,9 +68,7 @@ if ($paket_id) {
         FROM package_status_flow psf
         JOIN laundry_status s ON psf.status_id = s.id
         WHERE psf.package_id='$paket_id'
-        ORDER BY 
-    s.is_fixed DESC,
-    psf.urutan ASC
+        ORDER BY s.is_fixed DESC, psf.urutan ASC
     ");
     while ($r = mysqli_fetch_assoc($q)) {
         $status_aktif[] = $r;
@@ -101,7 +78,6 @@ if ($paket_id) {
 
 <!DOCTYPE html>
 <html>
-
 <head>
     <title>Pengaturan Alur Status</title>
 
@@ -121,8 +97,20 @@ if ($paket_id) {
             box-shadow: 0 4px 10px rgba(0, 0, 0, .1);
         }
 
-        h2 {
-            margin-top: 0;
+        /* ===== TOMBOL KEMBALI (SAMA SEPERTI PENGATURAN PAKET) ===== */
+        .btn-back {
+            display: inline-block;
+            margin-bottom: 15px;
+            padding: 8px 14px;
+            background: #2c3e50;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .btn-back:hover {
+            background: #1abc9c;
         }
 
         select {
@@ -143,7 +131,6 @@ if ($paket_id) {
             align-items: center;
             padding: 12px 10px;
             border-bottom: 1px solid #eee;
-            cursor: move;
         }
 
         .item:hover {
@@ -162,13 +149,8 @@ if ($paket_id) {
             text-decoration: none;
         }
 
-        .btn-hapus {
-            background: #f39c12;
-        }
-
-        .btn-tambah {
-            background: #2ecc71;
-        }
+        .btn-hapus { background: #f39c12; }
+        .btn-tambah { background: #2ecc71; }
 
         .section {
             margin-top: 30px;
@@ -183,94 +165,78 @@ if ($paket_id) {
 
 <body>
 
-    <div class="container">
-        <h2>Pengaturan Alur Status</h2>
+<div class="container">
 
-        <!-- PILIH PAKET -->
-        <form method="get">
-            <label>Pilih Paket</label>
-            <select name="paket_id" onchange="this.form.submit()">
-                <option value="">-- Pilih Paket --</option>
-                <?php while ($p = mysqli_fetch_assoc($paket)) { ?>
-                    <option value="<?= $p['id'] ?>" <?= $paket_id == $p['id'] ? 'selected' : '' ?>>
-                        <?= $p['nama_paket'] ?>
-                    </option>
-                <?php } ?>
-            </select>
-        </form>
+    <!-- TOMBOL KEMBALI -->
+    <a href="pengaturan.php" class="btn-back">← Kembali ke Pengaturan</a>
 
-        <?php if ($paket_id): ?>
+    <h2>Pengaturan Alur Status</h2>
 
-            <!-- STATUS AKTIF -->
-            <div class="section">
-                <h3>Status Aktif (geser untuk ubah urutan)</h3>
+    <!-- PILIH PAKET -->
+    <form method="get">
+        <label>Pilih Paket</label>
+        <select name="paket_id" onchange="this.form.submit()">
+            <option value="">-- Pilih Paket --</option>
+            <?php while ($p = mysqli_fetch_assoc($paket)) { ?>
+                <option value="<?= $p['id'] ?>" <?= $paket_id == $p['id'] ? 'selected' : '' ?>>
+                    <?= $p['nama_paket'] ?>
+                </option>
+            <?php } ?>
+        </select>
+    </form>
 
-                <?php if (empty($status_aktif)): ?>
-                    <p class="info">Belum ada status aktif</p>
-                <?php else: ?>
-                    <ul id="sortable">
-                        <?php foreach ($status_aktif as $s): ?>
-                            <li class="item" data-id="<?= $s['flow_id'] ?>">
-                                <span><?= $s['nama_status'] ?></span>
-                                <a class="btn btn-hapus" href="?paket_id=<?= $paket_id ?>&hapus=<?= $s['flow_id'] ?>"
-                                    onclick="return confirm('Nonaktifkan status ini?')">−</a>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
-                <?php endif; ?>
-            </div>
+    <?php if ($paket_id): ?>
 
-            <!-- STATUS TERSEDIA -->
-            <div class="section">
-                <h3>Status Tersedia</h3>
+        <!-- STATUS AKTIF -->
+        <div class="section">
+            <h3>Status Aktif</h3>
 
-                <?php
-                mysqli_data_seek($semua_status, 0);
-                $ada = false;
-                while ($s = mysqli_fetch_assoc($semua_status)) {
-                    $dipakai = false;
-                    foreach ($status_aktif as $a) {
-                        if ($a['id'] == $s['id'])
-                            $dipakai = true;
-                    }
-                    if (!$dipakai) {
-                        $ada = true;
-                        ?>
-                        <div class="item" style="cursor:default">
+            <?php if (empty($status_aktif)): ?>
+                <p class="info">Belum ada status aktif</p>
+            <?php else: ?>
+                <ul>
+                    <?php foreach ($status_aktif as $s): ?>
+                        <li class="item">
                             <span><?= $s['nama_status'] ?></span>
-                            <a class="btn btn-tambah" href="?paket_id=<?= $paket_id ?>&tambah=<?= $s['id'] ?>">+</a>
-                        </div>
-                    <?php }
-                } ?>
+                            <a class="btn btn-hapus"
+                               href="?paket_id=<?= $paket_id ?>&hapus=<?= $s['flow_id'] ?>"
+                               onclick="return confirm('Nonaktifkan status ini?')">−</a>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
+        </div>
 
-                <?php if (!$ada): ?>
-                    <p class="info">Semua status sudah digunakan</p>
-                <?php endif; ?>
-            </div>
+        <!-- STATUS TERSEDIA -->
+        <div class="section">
+            <h3>Status Tersedia</h3>
 
-        <?php endif; ?>
-    </div>
+            <?php
+            mysqli_data_seek($semua_status, 0);
+            $ada = false;
+            while ($s = mysqli_fetch_assoc($semua_status)) {
+                $dipakai = false;
+                foreach ($status_aktif as $a) {
+                    if ($a['id'] == $s['id']) $dipakai = true;
+                }
+                if (!$dipakai) {
+                    $ada = true;
+            ?>
+                <div class="item">
+                    <span><?= $s['nama_status'] ?></span>
+                    <a class="btn btn-tambah"
+                       href="?paket_id=<?= $paket_id ?>&tambah=<?= $s['id'] ?>">+</a>
+                </div>
+            <?php }} ?>
 
-    <!-- DRAG & DROP -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+            <?php if (!$ada): ?>
+                <p class="info">Semua status sudah digunakan</p>
+            <?php endif; ?>
+        </div>
 
-    <script>
-        $("#sortable").sortable({
-            update: function () {
-                let data = [];
-                $("#sortable .item").each(function (index) {
-                    data.push({
-                        id: $(this).data("id"),
-                        urutan: index + 1
-                    });
-                });
+    <?php endif; ?>
 
-                $.post("update_urutan_status.php", { data: data });
-            }
-        });
-    </script>
+</div>
 
 </body>
-
 </html>

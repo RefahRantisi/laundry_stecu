@@ -77,6 +77,22 @@ $data = mysqli_query($conn, "SELECT * FROM laundry_packages ORDER BY id DESC");
             border-radius: 6px;
         }
 
+        /* ===== TOMBOL KEMBALI (DITAMBAHKAN) ===== */
+        .btn-back {
+            display: inline-block;
+            margin-bottom: 15px;
+            padding: 8px 14px;
+            background: #2c3e50;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .btn-back:hover {
+            background: #1abc9c;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -109,6 +125,10 @@ $data = mysqli_query($conn, "SELECT * FROM laundry_packages ORDER BY id DESC");
 <body>
 
     <div class="container">
+
+        <!-- TOMBOL KEMBALI KE PENGATURAN -->
+        <a href="pengaturan.php" class="btn-back">← Kembali ke Pengaturan</a>
+
         <h2><?= $edit ? 'Edit Paket' : 'Tambah Paket' ?></h2>
 
         <form method="post">
@@ -143,7 +163,8 @@ $data = mysqli_query($conn, "SELECT * FROM laundry_packages ORDER BY id DESC");
                     <td>Rp <?= number_format($row['harga_per_kg']) ?></td>
                     <td class="aksi">
                         <a href="?edit=<?= $row['id'] ?>">Edit</a>
-                        <a href="?hapus=<?= $row['id'] ?>" class="hapus" onclick="return confirm('Hapus paket ini?')">
+                        <a href="?hapus=<?= $row['id'] ?>" class="hapus"
+                           onclick="return confirm('Hapus paket ini?')">
                             Hapus
                         </a>
                     </td>

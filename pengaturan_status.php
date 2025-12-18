@@ -55,6 +55,22 @@ $data = mysqli_query($conn, "SELECT * FROM laundry_status ORDER BY id DESC");
             border-radius: 6px;
         }
 
+        /* ===== TOMBOL KEMBALI (SAMA FORMAT) ===== */
+        .btn-back {
+            display: inline-block;
+            margin-bottom: 15px;
+            padding: 8px 14px;
+            background: #2c3e50;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .btn-back:hover {
+            background: #1abc9c;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -86,36 +102,41 @@ $data = mysqli_query($conn, "SELECT * FROM laundry_status ORDER BY id DESC");
 
 <body>
 
-    <div class="container">
-        <h2>Tambah Status</h2>
+<div class="container">
 
-        <form method="post">
-            <label>Nama Status</label><br>
-            <input type="text" name="nama_status" required><br><br>
+    <!-- TOMBOL KEMBALI -->
+    <a href="pengaturan.php" class="btn-back">← Kembali ke Pengaturan</a>
 
-            <button type="submit" name="tambah">Simpan Status</button>
-        </form>
+    <h2>Tambah Status</h2>
 
-        <h3>Daftar Status</h3>
-        <table>
+    <form method="post">
+        <label>Nama Status</label><br>
+        <input type="text" name="nama_status" required><br><br>
+
+        <button type="submit" name="tambah">Simpan Status</button>
+    </form>
+
+    <h3>Daftar Status</h3>
+    <table>
+        <tr>
+            <th>Nama Status</th>
+            <th>Aksi</th>
+        </tr>
+
+        <?php while ($row = mysqli_fetch_assoc($data)) { ?>
             <tr>
-                <th>Nama Status</th>
-                <th>Aksi</th>
+                <td><?= $row['nama_status'] ?></td>
+                <td class="aksi">
+                    <a href="?hapus=<?= $row['id'] ?>"
+                       class="hapus"
+                       onclick="return confirm('Hapus status ini?')">
+                        Hapus
+                    </a>
+                </td>
             </tr>
-
-            <?php while ($row = mysqli_fetch_assoc($data)) { ?>
-                <tr>
-                    <td><?= $row['nama_status'] ?></td>
-                    <td class="aksi">
-                        <a href="?hapus=<?= $row['id'] ?>" class="hapus" onclick="return confirm('Hapus status ini?')">
-                            Hapus
-                        </a>
-                    </td>
-                </tr>
-            <?php } ?>
-        </table>
-    </div>
+        <?php } ?>
+    </table>
+</div>
 
 </body>
-
 </html>

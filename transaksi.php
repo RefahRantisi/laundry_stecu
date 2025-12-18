@@ -250,6 +250,7 @@ if (isset($_POST['simpan'])) {
         <a href="transaksi.php">Transaksi</a>
         <a href="status.php">Status Laundry</a>
         <a href="laporan.php">Laporan</a>
+        <a href="pengaturan.php">Pengaturan</a>
     </div>
 
     <div class="container">
