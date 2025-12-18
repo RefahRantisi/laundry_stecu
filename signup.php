@@ -122,34 +122,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         input[type="text"]:focus,
         input[type="password"]:focus {
             outline: none;
-            border-color: #1abc9c;
+            border-color: #2c3e50;
         }
 
         button[type="submit"] {
             width: 100%;
             padding: 12px;
-            background: #2c3e50;
-            color: white;
+            background: #2c3e50 !important;
+            color: white !important;
             border: none;
             border-radius: 6px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.3s;
+            transition: background 0.3s;
         }
 
         button[type="submit"]:hover {
-            background: #1abc9c;
+            background: #34495e !important;
         }
 
         .login-link {
             text-align: center;
             margin-top: 20px;
-            color: #2c3e50;
+            color: #555;
         }
 
         .login-link a {
-            color: #1abc9c;
+            color: #2c3e50;
             text-decoration: none;
             font-weight: bold;
         }
