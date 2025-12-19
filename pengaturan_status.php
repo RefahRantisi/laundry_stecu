@@ -145,15 +145,15 @@ $data = mysqli_query($conn, "
         }
 
         /* ===== TOMBOL KEMBALI (SAMA FORMAT) ===== */
-        .btn-back {
-            display: inline-block;
-            margin-bottom: 15px;
-            padding: 8px 14px;
-            background: #2c3e50;
-            color: #fff;
-            text-decoration: none;
-            border-radius: 6px;
-            font-size: 14px;
+            .btn-back {
+                display: inline-block;
+                margin-bottom: 15px;
+                padding: 8px 14px;
+                background: #2c3e50;
+                color: #fff;
+                text-decoration: none;
+                border-radius: 6px;
+                font-size: 14px;
         }
 
         .btn-back:hover {

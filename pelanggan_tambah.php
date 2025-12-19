@@ -50,17 +50,18 @@ if (isset($_POST['simpan'])) {
         }
 
         .btn-back {
-            background: #7f8c8d;
+            display: inline-block;
+            margin-bottom: 15px;
             padding: 8px 14px;
-            color: white;
+            background: #2c3e50;
+            color: #fff;
             text-decoration: none;
             border-radius: 6px;
-            font-weight: bold;
-            display: inline-block;
+            font-size: 14px;
         }
 
         .btn-back:hover {
-            background: #636e72;
+            background: #1abc9c;
         }
 
         h2 {
