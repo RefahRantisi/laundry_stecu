@@ -110,7 +110,7 @@ $total = mysqli_fetch_assoc(
         }
 
         .filter-box button:hover {
-            background: #1f2d3a;
+            background: #1abc9c;
         }
 
         /* TABLE */
@@ -253,8 +253,6 @@ $total = mysqli_fetch_assoc(
             Total Pendapatan:
             <strong>Rp <?= number_format($total['total_pendapatan'] ?? 0, 0, ',', '.') ?></strong>
         </div>
-
-        <a href="dashboard.php" class="back-link">⬅ Kembali ke Dashboard</a>
     </div>
 
 </body>
