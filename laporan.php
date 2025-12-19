@@ -31,7 +31,7 @@ $total = mysqli_fetch_assoc(
         SELECT SUM(t.total_harga) AS total_pendapatan
         FROM transactions t
         JOIN laundry_status s ON t.status_id = s.id
-        WHERE s.is_fixed = 1 $where
+        WHERE s.is_fixed = 2 $where
     ")
 );
 
