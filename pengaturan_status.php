@@ -102,7 +102,7 @@ if (isset($_GET['nonaktifkan']) && ctype_digit($_GET['nonaktifkan'])) {
     ");
 
     header("Location: pengaturan_status.php");
-    exit;
+    exit
 }
 
 /* =========================
