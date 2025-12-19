@@ -1,6 +1,4 @@
 <?php
-
-
 include 'koneksi.php';
 
 /* =========================
@@ -11,7 +9,7 @@ $nama_status = '';
 $is_fixed = 0;
 
 /* =========================
-   MODE EDIT (LOAD FORM)
+   MODE EDIT
 ========================= */
 if (isset($_GET['id']) && ctype_digit($_GET['id'])) {
     $id = (int) $_GET['id'];
@@ -39,31 +37,44 @@ $awal_sudah_ada = false;
 $akhir_sudah_ada = false;
 
 $cek = mysqli_query($conn, "
-    SELECT is_fixed FROM laundry_status
+    SELECT is_fixed, id FROM laundry_status
     WHERE is_active = 1
 ");
 
 while ($r = mysqli_fetch_assoc($cek)) {
-    if ($r['is_fixed'] == 1 && $is_fixed !== 1)
+    if ($r['is_fixed'] == 1 && $r['id'] != $id)
         $awal_sudah_ada = true;
-    if ($r['is_fixed'] == 2 && $is_fixed !== 2)
+    if ($r['is_fixed'] == 2 && $r['id'] != $id)
         $akhir_sudah_ada = true;
 }
 
 /* =========================
-   SIMPAN (TAMBAH / EDIT)
+   SIMPAN
 ========================= */
 if (isset($_POST['simpan'])) {
     $nama_status = mysqli_real_escape_string($conn, $_POST['nama_status']);
     $is_fixed = (int) $_POST['is_fixed'];
     $edit_id = isset($_POST['id']) ? (int) $_POST['id'] : null;
 
-    // pastikan cuma satu awal & satu akhir
+    // pastikan cuma satu awal & akhir (kecuali diri sendiri)
     if ($is_fixed === 1) {
-        mysqli_query($conn, "UPDATE laundry_status SET is_fixed = 0 WHERE is_fixed = 1");
+        mysqli_query(
+            $conn,
+            "
+            UPDATE laundry_status 
+            SET is_fixed = 0 
+            WHERE is_fixed = 1 AND id != " . ($edit_id ?? 0)
+        );
     }
+
     if ($is_fixed === 2) {
-        mysqli_query($conn, "UPDATE laundry_status SET is_fixed = 0 WHERE is_fixed = 2");
+        mysqli_query(
+            $conn,
+            "
+            UPDATE laundry_status 
+            SET is_fixed = 0 
+            WHERE is_fixed = 2 AND id != " . ($edit_id ?? 0)
+        );
     }
 
     if ($edit_id) {
@@ -85,10 +96,10 @@ if (isset($_POST['simpan'])) {
 }
 
 /* =========================
-   NONAKTIFKAN STATUS
+   NONAKTIFKAN (HAPUS)
 ========================= */
-if (isset($_GET['nonaktifkan']) && ctype_digit($_GET['nonaktifkan'])) {
-    $id = (int) $_GET['nonaktifkan'];
+if (isset($_GET['hapus']) && ctype_digit($_GET['hapus'])) {
+    $id = (int) $_GET['hapus'];
 
     mysqli_query($conn, "
         UPDATE laundry_status
@@ -102,10 +113,11 @@ if (isset($_GET['nonaktifkan']) && ctype_digit($_GET['nonaktifkan'])) {
     ");
 
     header("Location: pengaturan_status.php");
-    exit
+    exit;
 }
+
 /* =========================
-   DATA LIST (UI)
+   DATA LIST
 ========================= */
 $data = mysqli_query($conn, "
     SELECT *
@@ -120,6 +132,7 @@ $data = mysqli_query($conn, "
         id ASC
 ");
 ?>
+
 
 <!DOCTYPE html>
 <html>
@@ -141,15 +154,15 @@ $data = mysqli_query($conn, "
         }
 
         /* ===== TOMBOL KEMBALI (SAMA FORMAT) ===== */
-            .btn-back {
-                display: inline-block;
-                margin-bottom: 15px;
-                padding: 8px 14px;
-                background: #2c3e50;
-                color: #fff;
-                text-decoration: none;
-                border-radius: 6px;
-                font-size: 14px;
+        .btn-back {
+            display: inline-block;
+            margin-bottom: 15px;
+            padding: 8px 14px;
+            background: #2c3e50;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
         }
 
         .btn-back:hover {
