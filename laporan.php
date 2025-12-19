@@ -21,7 +21,7 @@ FROM transactions t
 JOIN customers c ON t.customer_id = c.id
 JOIN laundry_packages p ON t.package_id = p.id
 JOIN laundry_status s ON t.status_id = s.id
-WHERE s.is_fixed = 1 $where
+WHERE s.is_fixed = 2 $where
 ORDER BY t.tanggal DESC
 ");
 
