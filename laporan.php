@@ -254,8 +254,6 @@ $total = mysqli_fetch_assoc(
             Total Pendapatan:
             <strong>Rp <?= number_format($total['total_pendapatan'] ?? 0, 0, ',', '.') ?></strong>
         </div>
-
-        <a href="dashboard.php" class="back-link">⬅ Kembali ke Dashboard</a>
     </div>
 
 </body>
