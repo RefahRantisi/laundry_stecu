@@ -57,7 +57,7 @@ include 'koneksi.php';
         }
 
         h2 {
-            margin-bottom: 5px;
+            margin-bottom: 20px;
         }
 
         p {
