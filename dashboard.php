@@ -7,11 +7,21 @@ $totalOrder = mysqli_fetch_assoc(
 );
 
 $proses = mysqli_fetch_assoc(
-    mysqli_query($conn, "SELECT COUNT(*) AS total FROM transactions WHERE status_id != 4")
+    mysqli_query($conn, "
+        SELECT COUNT(*) AS total
+        FROM transactions t
+        JOIN laundry_status s ON t.status_id = s.id
+        WHERE s.is_fixed = 0
+    ")
 );
 
 $selesai = mysqli_fetch_assoc(
-    mysqli_query($conn, "SELECT COUNT(*) AS total FROM transactions WHERE status_id = 4")
+    mysqli_query($conn, "
+        SELECT COUNT(*) AS total
+        FROM transactions t
+        JOIN laundry_status s ON t.status_id = s.id
+        WHERE s.is_fixed = 1
+    ")
 );
 ?>
 

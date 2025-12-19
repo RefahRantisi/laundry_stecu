@@ -20,18 +20,21 @@ SELECT
 FROM transactions t
 JOIN customers c ON t.customer_id = c.id
 JOIN laundry_packages p ON t.package_id = p.id
-WHERE t.status_id = 4 $where
+JOIN laundry_status s ON t.status_id = s.id
+WHERE s.is_fixed = 1 $where
 ORDER BY t.tanggal DESC
 ");
 
 /* TOTAL PENDAPATAN */
 $total = mysqli_fetch_assoc(
     mysqli_query($conn, "
-    SELECT SUM(t.total_harga) AS total_pendapatan
-    FROM transactions t
-    WHERE t.status_id = 4 $where
+        SELECT SUM(t.total_harga) AS total_pendapatan
+        FROM transactions t
+        JOIN laundry_status s ON t.status_id = s.id
+        WHERE s.is_fixed = 1 $where
     ")
 );
+
 ?>
 
 <!DOCTYPE html>
