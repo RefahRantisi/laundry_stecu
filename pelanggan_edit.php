@@ -62,7 +62,7 @@ if (isset($_POST['update'])) {
         }
 
         .btn-back:hover {
-            background: #636e72;
+            background: #1abc9c;
         }
 
         h2 {
