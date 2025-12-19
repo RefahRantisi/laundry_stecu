@@ -110,7 +110,7 @@ $total = mysqli_fetch_assoc(
         }
 
         .filter-box button:hover {
-            background: #1f2d3a;
+            background: #1abc9c;
         }
 
         /* TABLE */
