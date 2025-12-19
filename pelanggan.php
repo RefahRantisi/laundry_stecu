@@ -142,7 +142,6 @@ include 'koneksi.php';
 <!-- CONTENT -->
 <div class="container">
     <h2>Data Pelanggan</h2>
-    <p>Kelola data pelanggan laundry</p>
 
     <div class="content-card">
         <a href="pelanggan_tambah.php" class="btn btn-add">+ Tambah Pelanggan</a>
