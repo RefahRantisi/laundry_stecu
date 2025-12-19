@@ -6,11 +6,26 @@ include 'koneksi.php';
 <html>
 <head>
     <title>Data Pelanggan</title>
+
     <style>
-        body {
+        /* RESET */
+        * {
             margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        ::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+        }
+
+        body {
+            background-color: #f4f6f9;
+            color: #333;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
 
         /* ===== NAVBAR ===== */
@@ -35,20 +50,27 @@ include 'koneksi.php';
             background: #1abc9c;
         }
 
-        /* ===== CONTENT ===== */
+        /* ===== CONTAINER ===== */
         .container {
-            max-width: 1000px;
-            margin: auto;
+            width: 100%;
             padding: 30px;
+        }
+
+        h2 {
+            margin-bottom: 5px;
+        }
+
+        p {
+            margin-bottom: 20px;
+            color: #666;
         }
 
         /* ===== CARD ===== */
         .content-card {
-            background: white;
+            background: #fff;
             padding: 25px;
-            margin-top: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
         /* ===== BUTTON ===== */
@@ -60,6 +82,7 @@ include 'koneksi.php';
             font-size: 14px;
             font-weight: bold;
             color: white;
+            transition: 0.3s;
         }
 
         .btn-add {
@@ -75,6 +98,10 @@ include 'koneksi.php';
             background: #e74c3c;
         }
 
+        .btn:hover {
+            opacity: 0.85;
+        }
+
         /* ===== TABLE ===== */
         table {
             width: 100%;
@@ -82,23 +109,24 @@ include 'koneksi.php';
             margin-top: 15px;
         }
 
-        th {
-            background: #2c3e50;
-            color: white;
+        table th {
+            background: #2f4050;
+            color: #fff;
             padding: 12px;
             text-align: left;
         }
 
-        td {
+        table td {
             padding: 12px;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid #eee;
         }
 
-        tr:hover {
-            background: #f1f1f1;
+        table tr:hover {
+            background: #f1f5f9;
         }
     </style>
 </head>
+
 <body>
 
 <!-- NAVBAR -->
@@ -130,8 +158,8 @@ include 'koneksi.php';
 
             <?php
             $no = 1;
-            $data = mysqli_query($conn,"SELECT * FROM customers ORDER BY id DESC");
-            while($p = mysqli_fetch_assoc($data)){
+            $data = mysqli_query($conn, "SELECT * FROM customers ORDER BY id DESC");
+            while ($p = mysqli_fetch_assoc($data)) {
             ?>
             <tr>
                 <td><?= $no++ ?></td>

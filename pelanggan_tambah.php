@@ -1,4 +1,26 @@
-<?php include 'koneksi.php'; ?>
+<?php
+include 'koneksi.php';
+
+if (isset($_POST['simpan'])) {
+
+    $nama   = $_POST['nama'];
+    $telp   = $_POST['no_telp'];
+    $alamat = $_POST['alamat'];
+
+    mysqli_query($conn, "
+        INSERT INTO customers (nama, no_telp, alamat)
+        VALUES ('$nama','$telp','$alamat')
+    ");
+
+    // Ambil ID customer yang baru ditambahkan
+    $customer_id = mysqli_insert_id($conn);
+
+    // Redirect ke halaman transaksi
+    header("Location: transaksi.php?customer_id=$customer_id&nama=" . urlencode($nama));
+    exit;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -12,36 +34,33 @@
             background: #f4f4f4;
         }
 
-        /* ===== NAVBAR ===== */
-        .navbar {
-            background: #2c3e50;
-            padding: 15px;
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-        }
-
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-            padding: 10px 18px;
-            border-radius: 6px;
-            transition: 0.3s;
-        }
-
-        .navbar a:hover {
-            background: #1abc9c;
-        }
-
         /* ===== CONTENT ===== */
         .container {
             max-width: 600px;
-            margin: 40px auto;
+            margin: 25px auto;
             background: white;
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* tombol kembali di atas */
+        .top-bar {
+            margin-bottom: 15px;
+        }
+
+        .btn-back {
+            background: #7f8c8d;
+            padding: 8px 14px;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .btn-back:hover {
+            background: #636e72;
         }
 
         h2 {
@@ -60,6 +79,7 @@
             margin-top: 6px;
             border-radius: 6px;
             border: 1px solid #ccc;
+            box-sizing: border-box;
         }
 
         textarea {
@@ -69,8 +89,7 @@
 
         .btn-group {
             margin-top: 20px;
-            display: flex;
-            gap: 10px;
+            text-align: right;
         }
 
         button {
@@ -86,31 +105,19 @@
         button:hover {
             background: #16a085;
         }
-
-        .btn-back {
-            background: #7f8c8d;
-            padding: 10px 18px;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: bold;
-        }
-
-        .btn-back:hover {
-            background: #636e72;
-        }
     </style>
 </head>
 <body>
 
-<!-- ===== NAVBAR ===== -->
-<div class="navbar">
-    <a href="pelanggan.php">Pelanggan</a>
-    <a href="transaksi.php">Transaksi</a>
-</div>
 
 <!-- ===== CONTENT ===== -->
 <div class="container">
+
+    <!-- TOMBOL KEMBALI DI ATAS -->
+    <div class="top-bar">
+        <a href="pelanggan.php" class="btn-back">← Kembali</a>
+    </div>
+
     <h2>Tambah Pelanggan</h2>
 
     <form method="POST">
@@ -129,30 +136,9 @@
 
         <div class="btn-group">
             <button type="submit" name="simpan">Simpan</button>
-            <a href="pelanggan.php" class="btn-back">Kembali</a>
         </div>
     </form>
 </div>
 
-<?php
-if (isset($_POST['simpan'])) {
-
-    $nama   = $_POST['nama'];
-    $telp   = $_POST['no_telp'];
-    $alamat = $_POST['alamat'];
-
-    mysqli_query($conn, "
-        INSERT INTO customers (nama, no_telp, alamat)
-        VALUES ('$nama','$telp','$alamat')
-    ");
-
-    // AMBIL ID CUSTOMER BARU
-    $customer_id = mysqli_insert_id($conn);
-
-    // KEMBALI KE TRANSAKSI BAWA ID + NAMA
-    header("Location: transaksi.php?customer_id=$customer_id&nama=" . urlencode($nama));
-    exit;
-}
-?>
 </body>
 </html>
