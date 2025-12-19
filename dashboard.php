@@ -64,10 +64,23 @@ $dataStatus = mysqli_query($conn, "
     <title>Dashboard Laundry</title>
 
     <style>
-        body {
+        * {
             margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        ::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+        }
+
+        body {
+            background-color: #f4f6f9;
+            color: #333;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
 
         /* ===== NAVBAR ===== */
@@ -85,6 +98,7 @@ $dataStatus = mysqli_query($conn, "
             font-weight: bold;
             padding: 10px 18px;
             border-radius: 6px;
+            transition: 0.3s;
         }
 
         .navbar a:hover {
@@ -108,6 +122,7 @@ $dataStatus = mysqli_query($conn, "
             justify-content: center;
             gap: 20px;
             margin-top: 30px;
+            flex-wrap: nowrap;
         }
 
         .card {
@@ -122,6 +137,10 @@ $dataStatus = mysqli_query($conn, "
             display: flex;
             flex-direction: column;
             justify-content: center;
+
+            flex: 1;           
+            min-width: 180px; 
+            max-width: 220px;  
         }
 
         .card h3 {
@@ -229,9 +248,17 @@ $dataStatus = mysqli_query($conn, "
         <a href="transaksi.php" class="card-link">
             <div class="card">
                 <h3>Tambah Transaksi</h3>
-                <p style="font-size:24px; color:#2ecc71;">+ Order</p>
+                <p style="font-size:24px; color:#3498db;">+ Order</p>
             </div>
         </a>
+
+        <a href="pelanggan_tambah.php" class="card-link">
+            <div class="card">
+                <h3>Tambah Pelanggan</h3>
+                <p style="font-size:24px; color:#3498db;">+ Pelanggan</p>
+            </div>
+        </a>
+
     </div>
 
     <!-- STATUS LAUNDRY -->
