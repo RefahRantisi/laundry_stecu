@@ -218,7 +218,7 @@ if (isset($_POST['simpan'])) {
         form button[type="submit"] {
             margin-top: 20px;
             padding: 10px 20px;
-            background: #2ecc71;
+            background: #1abc9c;
             color: white;
             border: none;
             border-radius: 6px;
@@ -227,14 +227,10 @@ if (isset($_POST['simpan'])) {
             transition: 0.3s;
         }
 
-        form button[type="submit"]:hover {
-            background: #27ae60;
-        }
-
         form button[type="button"] {
             margin-top: 15px;
             padding: 10px 20px;
-            background: #2ecc71;
+            background: #1abc9c;
             color: white;
             border: none;
             border-radius: 6px;
