@@ -1,20 +1,19 @@
 <?php
+
+
 include 'koneksi.php';
 
-$awal_sudah_ada = false;
-$akhir_sudah_ada = false;
-
 /* =========================
-   DEFAULT VALUE
+   DEFAULT
 ========================= */
 $id = null;
 $nama_status = '';
 $is_fixed = 0;
 
 /* =========================
-   MODE EDIT (HANYA UNTUK LOAD FORM)
+   MODE EDIT (LOAD FORM)
 ========================= */
-if (isset($_GET['id']) && is_numeric($_GET['id'])) {
+if (isset($_GET['id']) && ctype_digit($_GET['id'])) {
     $id = (int) $_GET['id'];
 
     $q = mysqli_query($conn, "
@@ -28,19 +27,38 @@ if (isset($_GET['id']) && is_numeric($_GET['id'])) {
         $nama_status = $row['nama_status'];
         $is_fixed = (int) $row['is_fixed'];
     } else {
-        die('Status tidak ditemukan');
+        header("Location: pengaturan_status.php");
+        exit;
     }
 }
 
 /* =========================
-   SIMPAN STATUS (TAMBAH / EDIT)
+   CEK STATUS AWAL / AKHIR
+========================= */
+$awal_sudah_ada = false;
+$akhir_sudah_ada = false;
+
+$cek = mysqli_query($conn, "
+    SELECT is_fixed FROM laundry_status
+    WHERE is_active = 1
+");
+
+while ($r = mysqli_fetch_assoc($cek)) {
+    if ($r['is_fixed'] == 1 && $is_fixed !== 1)
+        $awal_sudah_ada = true;
+    if ($r['is_fixed'] == 2 && $is_fixed !== 2)
+        $akhir_sudah_ada = true;
+}
+
+/* =========================
+   SIMPAN (TAMBAH / EDIT)
 ========================= */
 if (isset($_POST['simpan'])) {
     $nama_status = mysqli_real_escape_string($conn, $_POST['nama_status']);
     $is_fixed = (int) $_POST['is_fixed'];
     $edit_id = isset($_POST['id']) ? (int) $_POST['id'] : null;
 
-    // pastikan hanya satu awal / akhir
+    // pastikan cuma satu awal & satu akhir
     if ($is_fixed === 1) {
         mysqli_query($conn, "UPDATE laundry_status SET is_fixed = 0 WHERE is_fixed = 1");
     }
@@ -49,7 +67,6 @@ if (isset($_POST['simpan'])) {
     }
 
     if ($edit_id) {
-        // UPDATE
         mysqli_query($conn, "
             UPDATE laundry_status SET
                 nama_status = '$nama_status',
@@ -57,7 +74,6 @@ if (isset($_POST['simpan'])) {
             WHERE id = $edit_id
         ");
     } else {
-        // INSERT
         mysqli_query($conn, "
             INSERT INTO laundry_status (nama_status, is_fixed, is_active)
             VALUES ('$nama_status', $is_fixed, 1)
@@ -69,47 +85,28 @@ if (isset($_POST['simpan'])) {
 }
 
 /* =========================
-   NONAKTIFKAN STATUS (AMAN)
+   NONAKTIFKAN STATUS
 ========================= */
 if (isset($_GET['nonaktifkan']) && ctype_digit($_GET['nonaktifkan'])) {
-
     $id = (int) $_GET['nonaktifkan'];
 
-    // 1. Pastikan status memang ada & aktif
-    $cek = mysqli_query($conn, "
-        SELECT id FROM laundry_status
-        WHERE id = $id AND is_active = 1
-        LIMIT 1
-    ");
-
-    if (mysqli_num_rows($cek) === 0) {
-        header("Location: pengaturan_status.php");
-        exit;
-    }
-
-    // 2. Nonaktifkan status (tidak hapus → aman FK transaksi)
     mysqli_query($conn, "
         UPDATE laundry_status
-        SET
-            is_active = 0,
-            is_fixed  = 0
+        SET is_active = 0, is_fixed = 0
         WHERE id = $id
     ");
 
-    // 3. Hapus dari alur paket (tidak ganggu histori)
     mysqli_query($conn, "
         DELETE FROM package_status_flow
         WHERE status_id = $id
     ");
 
-    // 4. Redirect bersih (tanpa parameter)
     header("Location: pengaturan_status.php");
     exit;
 }
 
-
 /* =========================
-   DATA LIST
+   DATA LIST (UI)
 ========================= */
 $data = mysqli_query($conn, "
     SELECT *
@@ -220,7 +217,7 @@ $data = mysqli_query($conn, "
         <h2>Tambah Status</h2>
 
         <form method="post">
-            <?php if (!empty($id)): ?>
+            <?php if ($id): ?>
                 <input type="hidden" name="id" value="<?= $id ?>">
             <?php endif; ?>
 
@@ -229,28 +226,23 @@ $data = mysqli_query($conn, "
             <br><br>
 
             <label>
-                <input type="radio" name="is_fixed" value="1" <?= ($is_fixed === 1) ? 'checked' : '' ?> <?= $awal_sudah_ada ? 'disabled' : '' ?>>
+                <input type="radio" name="is_fixed" value="1" <?= $is_fixed === 1 ? 'checked' : '' ?> <?= $awal_sudah_ada ? 'disabled' : '' ?>>
                 Tandai sebagai awal proses
                 <?= $awal_sudah_ada ? '<small>(sudah ada)</small>' : '' ?>
-            </label>
-            <br>
+            </label><br>
 
             <label>
-                <input type="radio" name="is_fixed" value="2" <?= ($is_fixed === 2) ? 'checked' : '' ?> <?= $akhir_sudah_ada ? 'disabled' : '' ?>>
+                <input type="radio" name="is_fixed" value="2" <?= $is_fixed === 2 ? 'checked' : '' ?> <?= $akhir_sudah_ada ? 'disabled' : '' ?>>
                 Tandai sebagai akhir proses
                 <?= $akhir_sudah_ada ? '<small>(sudah ada)</small>' : '' ?>
-            </label>
-            <br>
+            </label><br>
 
             <label>
-                <input type="radio" name="is_fixed" value="0" <?= ($is_fixed === 0) ? 'checked' : '' ?>>
+                <input type="radio" name="is_fixed" value="0" <?= $is_fixed === 0 ? 'checked' : '' ?>>
                 Status proses biasa
-            </label>
-            <br><br>
+            </label><br><br>
 
-            <button type="submit" name="simpan">
-                <?= !empty($id) ? 'Update Status' : 'Simpan Status' ?>
-            </button>
+            <button type="submit" name="simpan">Simpan</button>
         </form>
 
 
