@@ -79,7 +79,6 @@ session_start();
     <a href="dashboard.php">Dashboard</a>
     <a href="pelanggan.php">Data Pelanggan</a>
     <a href="transaksi.php">Transaksi</a>
-    <a href="status.php">Status Laundry</a>
     <a href="laporan.php">Laporan</a>
     <a href="pengaturan.php">Pengaturan</a>
 </div>
