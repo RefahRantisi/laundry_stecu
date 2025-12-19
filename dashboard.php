@@ -20,7 +20,7 @@ $selesai = mysqli_fetch_assoc(
         SELECT COUNT(*) AS total
         FROM transactions t
         JOIN laundry_status s ON t.status_id = s.id
-        WHERE s.is_fixed = 1
+        WHERE s.is_fixed = 2
     ")
 );
 ?>
