@@ -1,4 +1,6 @@
 <?php
+
+require 'auth.php';
 include 'koneksi.php';
 
 $paket_id = $_GET['paket_id'] ?? null;
