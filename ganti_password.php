@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $old_password = $_POST['old_password'];
     $new_password = $_POST['new_password'];
     $confirm_password = $_POST['confirm_password'];
-    $user_id = $_SESSION['admin_id'];
+    $user_id = $_SESSION['user_id'];
 
     if (empty($old_password) || empty($new_password) || empty($confirm_password)) {
         $error = "Semua field wajib diisi!";
