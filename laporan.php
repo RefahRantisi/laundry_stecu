@@ -1,4 +1,7 @@
 <?php
+
+require 'auth.php';
+
 include 'koneksi.php';
 
 /* FILTER TANGGAL */

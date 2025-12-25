@@ -4,17 +4,21 @@ ini_set('display_errors', 1);
 
 session_start();
 
+// 🔒 Jika sudah login, tidak boleh signup lagi
+if (isset($_SESSION['login'])) {
+    header("Location: dashboard.php");
+    exit;
+}
+
 // Koneksi database
 $conn = new mysqli('localhost', 'root', '', 'laundry_stecu');
-
 if ($conn->connect_error) {
     die("Koneksi gagal: " . $conn->connect_error);
 }
 
 $error = '';
-$success = '';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
@@ -29,30 +33,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } elseif ($password !== $confirm_password) {
         $error = "Password dan konfirmasi password tidak cocok!";
     } else {
-        // Cek apakah username sudah ada
-        $sql = "SELECT * FROM users WHERE username = '$username'";
-        $result = $conn->query($sql);
 
-        if ($result->num_rows > 0) {
-            $error = "Username sudah digunakan! Silakan pilih username lain.";
+        // Cek username
+        $stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $stmt->store_result();
+
+        if ($stmt->num_rows > 0) {
+            $error = "Username sudah digunakan!";
         } else {
             // Hash password
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-            // Insert user baru
-            $sql = "INSERT INTO users (username, password) VALUES ('$username', '$hashed_password')";
+            // Insert user
+            $stmt->close();
+            $stmt = $conn->prepare(
+                "INSERT INTO users (username, password) VALUES (?, ?)"
+            );
+            $stmt->bind_param("ss", $username, $hashed_password);
 
-            if ($conn->query($sql) === TRUE) {
-                $success = "Registrasi berhasil! Silakan login.";
-                // Redirect ke login setelah 2 detik
-                header("refresh:2;url=login.php");
+            if ($stmt->execute()) {
+                // Redirect bersih ke login
+                header("Location: login.php?register=success");
+                exit;
             } else {
-                $error = "Terjadi kesalahan: " . $conn->error;
+                $error = "Registrasi gagal!";
             }
         }
+        $stmt->close();
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html>
 
@@ -274,10 +287,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             <?php if ($error): ?>
                 <div class="alert alert-error"><?php echo $error; ?></div>
-            <?php endif; ?>
-
-            <?php if ($success): ?>
-                <div class="alert alert-success"><?php echo $success; ?></div>
             <?php endif; ?>
 
             <form method="POST">

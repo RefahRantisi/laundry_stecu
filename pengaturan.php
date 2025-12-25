@@ -1,5 +1,7 @@
 <?php
-session_start();
+
+require 'auth.php';
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -19,6 +21,10 @@ session_start();
             display: flex;
             justify-content: center;
             gap: 12px;
+        }
+
+        label {
+            font-weight: bold;
         }
 
         .navbar a {
@@ -88,9 +94,16 @@ session_start();
     <h2>Pengaturan Laundry</h2>
 
     <div class="card">
+        <label>Paket dan Status</label>
+        <hr>
         <a href="pengaturan_paket.php" class="menu-link">⚙️ Pengaturan Paket</a>
         <a href="pengaturan_status.php" class="menu-link">⚙️ Pengaturan Status</a>
         <a href="pengaturan_alur.php" class="menu-link">⚙️ Pengaturan Alur Paket</a>
+        <br>
+        <label>Akun</label>
+        <hr>
+        <a href="ganti_password.php" class="menu-link">⚙️ Ganti Password</a>
+        <a href="logout.php" class="menu-link" onclick="return confirm('Yakin mau logout dari sistem?');">⚙️ Keluar</a>
     </div>
 </div>
 

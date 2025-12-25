@@ -1,6 +1,8 @@
 <?php
-session_start();
+require 'auth.php';
 include 'koneksi.php';
+
+$user_id = $_SESSION['user_id']; // 🔥 ID user login
 
 /* ================= UPDATE STATUS ================= */
 if (isset($_POST['transaksi_id'], $_POST['status_id'])) {
@@ -8,39 +10,48 @@ if (isset($_POST['transaksi_id'], $_POST['status_id'])) {
     $status_id = (int) $_POST['status_id'];
 
     mysqli_query($conn, "
-        UPDATE transactions
+        UPDATE transactions 
         SET status_id = $status_id
-        WHERE id = $transaksi_id
+        WHERE id = $transaksi_id 
+        AND user_id = $user_id
     ");
 
     header("Location: dashboard.php");
     exit;
 }
 
-/* ================= DATA DASHBOARD ================= */
+/* ================= TOTAL ORDER ================= */
 $totalOrder = mysqli_fetch_assoc(
-    mysqli_query($conn, "SELECT COUNT(*) AS total FROM transactions")
+    mysqli_query($conn, "
+        SELECT COUNT(*) AS total 
+        FROM transactions 
+        WHERE user_id = $user_id
+    ")
 );
 
+/* ================= PROSES ================= */
 $proses = mysqli_fetch_assoc(
     mysqli_query($conn, "
         SELECT COUNT(*) AS total
         FROM transactions t
         JOIN laundry_status s ON t.status_id = s.id
         WHERE s.is_fixed = 0
+        AND t.user_id = $user_id
     ")
 );
 
+/* ================= SELESAI ================= */
 $selesai = mysqli_fetch_assoc(
     mysqli_query($conn, "
         SELECT COUNT(*) AS total
         FROM transactions t
         JOIN laundry_status s ON t.status_id = s.id
         WHERE s.is_fixed = 2
+        AND t.user_id = $user_id
     ")
 );
 
-/* ================= DATA STATUS LAUNDRY ================= */
+/* ================= DATA TRANSAKSI ================= */
 $dataStatus = mysqli_query($conn, "
     SELECT 
         t.id AS transaksi_id,
@@ -54,9 +65,11 @@ $dataStatus = mysqli_query($conn, "
     JOIN laundry_packages p ON t.package_id = p.id
     JOIN laundry_status s ON t.status_id = s.id
     WHERE s.nama_status != 'Selesai'
+    AND t.user_id = $user_id
     ORDER BY t.id DESC
 ");
 ?>
+
 
 <!DOCTYPE html>
 <html>
@@ -222,11 +235,13 @@ $dataStatus = mysqli_query($conn, "
     <a href="transaksi.php">Transaksi</a>
     <a href="laporan.php">Laporan</a>
     <a href="pengaturan.php">Pengaturan</a>
+    Keluar
+</a>
 </div>
 
 <div class="container">
     <h2>Dashboard</h2>
-    <p>Selamat datang di sistem informasi laundry</p>
+    <h3>Selamat datang, <?= htmlspecialchars($_SESSION['username']) ?></h3>
 
     <!-- CARDS -->
     <div class="cards">

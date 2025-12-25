@@ -1,5 +1,9 @@
 <?php
+
+require 'auth.php';
 include 'koneksi.php';
+
+$user_id = $_SESSION['user_id'];        
 
 /* ===============================
    AMBIL DATA CUSTOMER (AUTOCOMPLETE)
@@ -25,12 +29,12 @@ $display_value = ($nama_url && $telp_url)
     : '';
 
 /* ===============================
-   AMBIL DATA PAKET LAUNDRY (HANYA AKTIF)
+   AMBIL DATA PAKET LAUNDRY (AKTIF)
 =============================== */
 $pakets = mysqli_query(
     $conn,
-    "SELECT id, nama_paket, harga_per_kg 
-     FROM laundry_packages 
+    "SELECT id, nama_paket, harga_per_kg
+     FROM laundry_packages
      WHERE is_active = 1
      ORDER BY nama_paket ASC"
 );
@@ -44,81 +48,95 @@ if (isset($_POST['simpan'])) {
     $berat = floatval($_POST['berat_kg']);
     $package_id = intval($_POST['package_id']);
     $customer_id = intval($_POST['customer_id']);
+    $user_id = $_SESSION['user_id']; // 🔥 PENTING
 
     /* ===============================
        VALIDASI CUSTOMER
     =============================== */
-    $cek_customer = mysqli_query(
-        $conn,
-        "SELECT id FROM customers WHERE id = $customer_id"
+    $cek_customer = $conn->prepare(
+        "SELECT id FROM customers WHERE id = ?"
     );
+    $cek_customer->bind_param("i", $customer_id);
+    $cek_customer->execute();
+    $cek_customer->store_result();
 
-    if (mysqli_num_rows($cek_customer) == 0) {
-        echo "<script>
-            alert('Pelanggan tidak valid. Pilih dari daftar.');
-            history.back();
-        </script>";
+    if ($cek_customer->num_rows == 0) {
+        echo "<script>alert('Pelanggan tidak valid');history.back();</script>";
         exit;
     }
 
     /* ===============================
-       VALIDASI PAKET (HARUS AKTIF)
+       VALIDASI PAKET
     =============================== */
-    $cek_paket = mysqli_query(
-        $conn,
-        "SELECT harga_per_kg 
-         FROM laundry_packages 
-         WHERE id = $package_id AND is_active = 1
+    $cek_paket = $conn->prepare(
+        "SELECT harga_per_kg
+         FROM laundry_packages
+         WHERE id = ? AND is_active = 1
          LIMIT 1"
     );
+    $cek_paket->bind_param("i", $package_id);
+    $cek_paket->execute();
+    $result_paket = $cek_paket->get_result();
 
-    if (mysqli_num_rows($cek_paket) == 0) {
-        echo "<script>
-            alert('Paket laundry tidak tersedia / sudah nonaktif');
-            history.back();
-        </script>";
+    if ($result_paket->num_rows == 0) {
+        echo "<script>alert('Paket tidak aktif');history.back();</script>";
         exit;
     }
 
-    // ambil harga resmi
-    $row_paket = mysqli_fetch_assoc($cek_paket);
+    $row_paket = $result_paket->fetch_assoc();
     $harga_paket = $row_paket['harga_per_kg'];
     $total = $harga_paket * $berat;
 
     /* ===============================
-       AMBIL STATUS AWAL (HARUS AKTIF)
+       AMBIL STATUS AWAL
     =============================== */
-    $q_status_awal = mysqli_query($conn, "
+    $q_status = $conn->prepare("
         SELECT psf.status_id
         FROM package_status_flow psf
         JOIN laundry_status ls ON psf.status_id = ls.id
-        WHERE psf.package_id = $package_id
+        WHERE psf.package_id = ?
           AND ls.is_active = 1
         ORDER BY psf.urutan ASC
         LIMIT 1
     ");
+    $q_status->bind_param("i", $package_id);
+    $q_status->execute();
+    $res_status = $q_status->get_result();
 
-    if (mysqli_num_rows($q_status_awal) == 0) {
-        echo "<script>
-            alert('Paket ini belum memiliki alur status aktif.');
-            history.back();
-        </script>";
+    if ($res_status->num_rows == 0) {
+        echo "<script>alert('Alur status belum tersedia');history.back();</script>";
         exit;
     }
 
-    $row_status = mysqli_fetch_assoc($q_status_awal);
-    $status_id = $row_status['status_id'];
+    $status_id = $res_status->fetch_assoc()['status_id'];
 
     /* ===============================
-       SIMPAN TRANSAKSI
+       SIMPAN KE transactions (BENAR)
     =============================== */
-    mysqli_query(
-        $conn,
-        "INSERT INTO transactions
-        (tanggal, customer_id, package_id, berat_kg, total_harga, status_id)
-        VALUES
-        ('$tanggal', $customer_id, $package_id, '$berat', '$total', $status_id)"
+    $stmt = $conn->prepare("
+        INSERT INTO transactions (
+            tanggal,
+            customer_id,
+            package_id,
+            berat_kg,
+            total_harga,
+            status_id,
+            user_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+    ");
+
+    $stmt->bind_param(
+        "siiddii",
+        $tanggal,
+        $customer_id,
+        $package_id,
+        $berat,
+        $total,
+        $status_id,
+        $user_id
     );
+
+    $stmt->execute();
 
     echo "<script>
         alert('Transaksi berhasil disimpan');

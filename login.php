@@ -2,6 +2,7 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+ob_start();
 session_start();
 
 // Koneksi database
@@ -30,12 +31,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Verifikasi password hash
             if (password_verify($password, $user['password'])) {
                 // Login Berhasil - Set Session
-                $_SESSION['admin_id'] = $user['id'];
-                $_SESSION['admin_user'] = $user['username'];
+                $_SESSION['login'] = true;
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
                 
                 // Arahkan ke dashboard
                 header("Location: dashboard.php");
-                exit();
+                exit;
             } else {
                 $error = "Password salah!";
             }
@@ -44,6 +46,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 }
+
+ob_end_flush();
 ?>
 <!DOCTYPE html>
 <html>
@@ -249,6 +253,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <h2>Masuk ke Akun Anda</h2>
                 <p>Masukkan username dan password untuk melanjutkan</p>
             </div>
+
+            <?php if (isset($_GET['logout']) && $_GET['logout'] === 'success'): ?>
+                <div class="alert alert-success">
+                    Anda berhasil logout.
+                </div>
+            <?php endif; ?>
 
             <?php if ($error): ?>
                 <div class="alert alert-error"><?php echo $error; ?></div>
