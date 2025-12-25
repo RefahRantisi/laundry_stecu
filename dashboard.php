@@ -235,7 +235,6 @@ $dataStatus = mysqli_query($conn, "
     <a href="transaksi.php">Transaksi</a>
     <a href="laporan.php">Laporan</a>
     <a href="pengaturan.php">Pengaturan</a>
-    Keluar
 </a>
 </div>
 
