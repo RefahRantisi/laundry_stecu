@@ -142,6 +142,12 @@ ob_end_flush();
             border: 1px solid #fcc;
         }
 
+        .alert-success {
+            background: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+        }
+
         /* Form */
         form {
             width: 100%;
@@ -202,6 +208,25 @@ ob_end_flush();
             color: #999;
         }
 
+        /* Forgot Password Link */
+        .forgot-password {
+            text-align: right;
+            margin-top: -10px;
+            margin-bottom: 15px;
+        }
+
+        .forgot-password a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-size: 13px;
+            transition: 0.3s;
+        }
+
+        .forgot-password a:hover {
+            color: #34495e;
+            text-decoration: underline;
+        }
+
         /* Submit Button */
         .submit-btn {
             width: 100%;
@@ -260,6 +285,12 @@ ob_end_flush();
                 </div>
             <?php endif; ?>
 
+            <?php if (isset($_GET['reset']) && $_GET['reset'] === 'success'): ?>
+                <div class="alert alert-success">
+                    Password berhasil direset! Silakan login dengan password baru Anda.
+                </div>
+            <?php endif; ?>
+
             <?php if ($error): ?>
                 <div class="alert alert-error"><?php echo $error; ?></div>
             <?php endif; ?>
@@ -299,6 +330,10 @@ ob_end_flush();
                             👁️
                         </button>
                     </div>
+                </div>
+
+                <div class="forgot-password">
+                    <a href="forgot_password.php">Lupa Sandi?</a>
                 </div>
 
                 <button type="submit" class="submit-btn">Masuk</button>
