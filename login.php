@@ -6,11 +6,7 @@ ob_start();
 session_start();
 
 // Koneksi database
-$conn = new mysqli('localhost', 'root', '', 'laundry_stecu');
-
-if ($conn->connect_error) {
-    die("Koneksi gagal: " . $conn->connect_error);
-}
+include 'koneksi.php';
 
 $error = '';
 
