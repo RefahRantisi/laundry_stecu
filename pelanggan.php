@@ -134,7 +134,7 @@ include 'koneksi.php';
 
 <!-- NAVBAR -->
 <div class="navbar">
-    <a href="dashboard.php">Dashboard</a>
+    <a href="index.php">Dashboard</a>
     <a href="pelanggan.php">Data Pelanggan</a>
     <a href="transaksi.php">Transaksi</a>
     <a href="laporan.php">Laporan</a>
