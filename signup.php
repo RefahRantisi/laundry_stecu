@@ -11,10 +11,7 @@ if (isset($_SESSION['login'])) {
 }
 
 // Koneksi database
-$conn = new mysqli('localhost', 'root', '', 'laundry_stecu');
-if ($conn->connect_error) {
-    die("Koneksi gagal: " . $conn->connect_error);
-}
+include 'koneksi.php';
 
 $error = '';
 
