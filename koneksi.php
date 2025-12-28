@@ -1,7 +1,7 @@
 <?php
-$host     = "localhost";
+$host     = "db";
 $user     = "root";
-$password = "";
+$password = "root";
 $database = "laundry_stecu";
 
 // Membuat koneksi
