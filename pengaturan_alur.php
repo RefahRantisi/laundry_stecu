@@ -1,5 +1,4 @@
 <?php
-
 require 'auth.php';
 include 'koneksi.php';
 
@@ -43,7 +42,7 @@ if (isset($_GET['hapus'])) {
 }
 
 /* =====================
-   DATA PAKET (AKTIF)
+   DATA PAKET
 ===================== */
 $paket = mysqli_query($conn, "
     SELECT id, nama_paket
@@ -53,7 +52,7 @@ $paket = mysqli_query($conn, "
 ");
 
 /* =====================
-   DATA STATUS (AKTIF)
+   DATA STATUS
 ===================== */
 $semua_status = mysqli_query($conn, "
     SELECT id, nama_status
@@ -82,16 +81,17 @@ if ($paket_id) {
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
+    <meta charset="UTF-8">
     <title>Pengaturan Alur Status</title>
 
+    <!-- RWD -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <style>
-        ::-webkit-scrollbar {
-            width: 0;
-            height: 0;
-        }
-        
+        * { box-sizing: border-box; }
+
         body {
             font-family: Arial, sans-serif;
             background: #f4f4f4;
@@ -100,18 +100,23 @@ if ($paket_id) {
 
         .container {
             max-width: 700px;
-            margin: 30px auto;
+            width: 95%;
+            margin: 20px auto;
             background: #fff;
-            padding: 25px;
+            padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, .1);
+            box-shadow: 0 4px 10px rgba(0,0,0,.08);
         }
 
-        /* ===== TOMBOL KEMBALI (SAMA SEPERTI PENGATURAN PAKET) ===== */
+        h2, h3 {
+            margin-top: 0;
+        }
+
+        /* ===== BUTTON ===== */
         .btn-back {
             display: inline-block;
             margin-bottom: 15px;
-            padding: 8px 14px;
+            padding: 10px 16px;
             background: #2c3e50;
             color: #fff;
             text-decoration: none;
@@ -127,6 +132,11 @@ if ($paket_id) {
             width: 100%;
             padding: 10px;
             margin-bottom: 20px;
+            border-radius: 6px;
+        }
+
+        .section {
+            margin-top: 25px;
         }
 
         ul {
@@ -148,27 +158,40 @@ if ($paket_id) {
         }
 
         .btn {
-            width: 28px;
-            height: 28px;
+            width: 34px;
+            height: 34px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-            color: white;
+            color: #fff;
             font-weight: bold;
             text-decoration: none;
+            font-size: 18px;
         }
 
-        .btn-hapus { background: #f39c12; }
+        .btn-hapus { background: #e67e22; }
         .btn-tambah { background: #2ecc71; }
-
-        .section {
-            margin-top: 30px;
-        }
 
         .info {
             color: #888;
             font-style: italic;
+        }
+
+        /* ===== MOBILE ===== */
+        @media (max-width: 600px) {
+            h2, h3 {
+                font-size: 18px;
+            }
+
+            .item {
+                padding: 14px 8px;
+            }
+
+            .btn-back {
+                width: 100%;
+                text-align: center;
+            }
         }
     </style>
 </head>
@@ -177,14 +200,13 @@ if ($paket_id) {
 
 <div class="container">
 
-    <!-- TOMBOL KEMBALI -->
     <a href="pengaturan.php" class="btn-back">← Kembali ke Pengaturan</a>
 
     <h2>Pengaturan Alur Status</h2>
 
     <!-- PILIH PAKET -->
     <form method="get">
-        <label>Pilih Paket</label>
+        <label><strong>Pilih Paket</strong></label>
         <select name="paket_id" onchange="this.form.submit()">
             <option value="">-- Pilih Paket --</option>
             <?php while ($p = mysqli_fetch_assoc($paket)) { ?>
@@ -199,10 +221,10 @@ if ($paket_id) {
 
         <!-- STATUS AKTIF -->
         <div class="section">
-            <h3>Status Aktif</h3>
+            <h3>Status Aktif (Urutan Proses)</h3>
 
             <?php if (empty($status_aktif)): ?>
-                <p class="info">Belum ada status aktif</p>
+                <p class="info">Belum ada status untuk paket ini</p>
             <?php else: ?>
                 <ul>
                     <?php foreach ($status_aktif as $s): ?>
@@ -224,6 +246,7 @@ if ($paket_id) {
             <?php
             mysqli_data_seek($semua_status, 0);
             $ada = false;
+
             while ($s = mysqli_fetch_assoc($semua_status)) {
                 $dipakai = false;
                 foreach ($status_aktif as $a) {
