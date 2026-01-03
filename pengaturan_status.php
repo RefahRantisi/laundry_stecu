@@ -1,5 +1,4 @@
 <?php
-
 require 'auth.php';
 include 'koneksi.php';
 
@@ -58,11 +57,8 @@ if (isset($_POST['simpan'])) {
     $is_fixed = (int) $_POST['is_fixed'];
     $edit_id = isset($_POST['id']) ? (int) $_POST['id'] : null;
 
-    // pastikan cuma satu awal & akhir (kecuali diri sendiri)
     if ($is_fixed === 1) {
-        mysqli_query(
-            $conn,
-            "
+        mysqli_query($conn, "
             UPDATE laundry_status 
             SET is_fixed = 0 
             WHERE is_fixed = 1 AND id != " . ($edit_id ?? 0)
@@ -70,9 +66,7 @@ if (isset($_POST['simpan'])) {
     }
 
     if ($is_fixed === 2) {
-        mysqli_query(
-            $conn,
-            "
+        mysqli_query($conn, "
             UPDATE laundry_status 
             SET is_fixed = 0 
             WHERE is_fixed = 2 AND id != " . ($edit_id ?? 0)
@@ -98,7 +92,7 @@ if (isset($_POST['simpan'])) {
 }
 
 /* =========================
-   NONAKTIFKAN (HAPUS)
+   NONAKTIFKAN
 ========================= */
 if (isset($_GET['hapus']) && ctype_digit($_GET['hapus'])) {
     $id = (int) $_GET['hapus'];
@@ -135,31 +129,45 @@ $data = mysqli_query($conn, "
 ");
 ?>
 
-
 <!DOCTYPE html>
-<html>
-
+<html lang="id">
 <head>
+    <meta charset="UTF-8">
     <title>Pengaturan Status</title>
+
+    <!-- RWD -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial;
-            background: #f5f5f5;
+            font-family: Arial, sans-serif;
+            background: #f2f4f7;
+            margin: 0;
+            padding: 0;
         }
 
         .container {
-            width: 700px;
-            margin: 30px auto;
+            max-width: 700px;
+            width: 95%;
+            margin: 20px auto;
             background: #fff;
             padding: 20px;
-            border-radius: 6px;
+            border-radius: 8px;
         }
 
-        /* ===== TOMBOL KEMBALI (SAMA FORMAT) ===== */
+        h2, h3 {
+            margin-top: 0;
+        }
+
+        /* ===== BUTTON ===== */
         .btn-back {
             display: inline-block;
             margin-bottom: 15px;
-            padding: 8px 14px;
+            padding: 10px 16px;
             background: #2c3e50;
             color: #fff;
             text-decoration: none;
@@ -171,40 +179,6 @@ $data = mysqli_query($conn, "
             background: #1abc9c;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th,
-        td {
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-            text-align: left;
-        }
-
-        input,
-        button {
-            padding: 8px;
-        }
-
-        form button[type="submit"] {
-            padding: 10px 20px;
-            background: #2ecc71;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .aksi a {
-            margin-right: 8px;
-            text-decoration: none;
-        }
-
         .btn {
             display: inline-block;
             padding: 8px 14px;
@@ -212,55 +186,125 @@ $data = mysqli_query($conn, "
             text-decoration: none;
             font-size: 14px;
             font-weight: bold;
-            color: white;
+            color: #fff;
         }
 
         .btn-delete {
             background: #e74c3c;
+        }
+
+        /* ===== FORM ===== */
+        label {
+            font-weight: bold;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            margin-bottom: 14px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        button[type="submit"] {
+            padding: 10px 20px;
+            background: #2ecc71;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* ===== TABLE ===== */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            min-width: 400px;
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        th {
+            background: #f7f7f7;
+        }
+
+        /* ===== MOBILE ===== */
+        @media (max-width: 600px) {
+            h2, h3 {
+                font-size: 18px;
+            }
+
+            th, td {
+                font-size: 14px;
+                padding: 8px;
+            }
+
+            .btn,
+            .btn-back,
+            button[type="submit"] {
+                width: 100%;
+                text-align: center;
+                margin-bottom: 6px;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <div class="container">
+<div class="container">
 
-        <!-- TOMBOL KEMBALI -->
-        <a href="pengaturan.php" class="btn-back">← Kembali ke Pengaturan</a>
+    <a href="pengaturan.php" class="btn-back">← Kembali ke Pengaturan</a>
 
-        <h2>Tambah Status</h2>
+    <h2><?= $id ? 'Edit Status' : 'Tambah Status' ?></h2>
 
-        <form method="post">
-            <?php if ($id): ?>
-                <input type="hidden" name="id" value="<?= $id ?>">
-            <?php endif; ?>
+    <form method="post">
+        <?php if ($id): ?>
+            <input type="hidden" name="id" value="<?= $id ?>">
+        <?php endif; ?>
 
-            <label>Nama Status</label><br>
-            <input type="text" name="nama_status" value="<?= htmlspecialchars($nama_status) ?>" required>
-            <br><br>
+        <label>Nama Status</label>
+        <input type="text" name="nama_status" required value="<?= htmlspecialchars($nama_status) ?>">
 
-            <label>
-                <input type="radio" name="is_fixed" value="1" <?= $is_fixed === 1 ? 'checked' : '' ?> <?= $awal_sudah_ada ? 'disabled' : '' ?>>
-                Tandai sebagai awal proses
-                <?= $awal_sudah_ada ? '<small>(sudah ada)</small>' : '' ?>
-            </label><br>
+        <label>
+            <input type="radio" name="is_fixed" value="1"
+                <?= $is_fixed === 1 ? 'checked' : '' ?>
+                <?= $awal_sudah_ada ? 'disabled' : '' ?>>
+            Status awal
+        </label><br>
 
-            <label>
-                <input type="radio" name="is_fixed" value="2" <?= $is_fixed === 2 ? 'checked' : '' ?> <?= $akhir_sudah_ada ? 'disabled' : '' ?>>
-                Tandai sebagai akhir proses
-                <?= $akhir_sudah_ada ? '<small>(sudah ada)</small>' : '' ?>
-            </label><br>
+        <label>
+            <input type="radio" name="is_fixed" value="2"
+                <?= $is_fixed === 2 ? 'checked' : '' ?>
+                <?= $akhir_sudah_ada ? 'disabled' : '' ?>>
+            Status akhir
+        </label><br>
 
-            <label>
-                <input type="radio" name="is_fixed" value="0" <?= $is_fixed === 0 ? 'checked' : '' ?>>
-                Status proses biasa
-            </label><br><br>
+        <label>
+            <input type="radio" name="is_fixed" value="0"
+                <?= $is_fixed === 0 ? 'checked' : '' ?>>
+            Status proses
+        </label><br><br>
 
-            <button type="submit" name="simpan">Simpan</button>
-        </form>
+        <button type="submit" name="simpan">Simpan</button>
+    </form>
 
+    <h3>Daftar Status</h3>
 
-        <h3>Daftar Status</h3>
+    <div class="table-responsive">
         <table>
             <tr>
                 <th>Nama Status</th>
@@ -270,9 +314,10 @@ $data = mysqli_query($conn, "
             <?php while ($row = mysqli_fetch_assoc($data)) { ?>
                 <tr>
                     <td><?= $row['nama_status'] ?></td>
-                    <td class="aksi">
-                        <a href="?hapus=<?= $row['id'] ?>" class="btn btn-delete"
-                            onclick="return confirm('Hapus status ini?')">
+                    <td>
+                        <a href="?hapus=<?= $row['id'] ?>"
+                           class="btn btn-delete"
+                           onclick="return confirm('Hapus status ini?')">
                             Hapus
                         </a>
                     </td>
@@ -281,6 +326,7 @@ $data = mysqli_query($conn, "
         </table>
     </div>
 
-</body>
+</div>
 
+</body>
 </html>
