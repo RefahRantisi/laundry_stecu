@@ -2,24 +2,26 @@
 require 'auth.php';
 include 'koneksi.php';
 
+$user_id = $_SESSION['user_id']; // 🔥 ID user login
+
 /* ================= UPDATE STATUS ================= */
 if (isset($_POST['transaksi_id'], $_POST['status_id'])) {
-
     $transaksi_id = (int) $_POST['transaksi_id'];
     $status_id = (int) $_POST['status_id'];
 
     mysqli_query($conn, "
-        UPDATE transactions
+        UPDATE transactions 
         SET status_id = $status_id
-        WHERE id = $transaksi_id
+        WHERE id = $transaksi_id 
+        AND user_id = $user_id
     ");
 
-    header("Location: status.php");
+    header("Location: index.php");
     exit;
 }
 
 /* ================= AMBIL TRANSAKSI (KECUALI SELESAI) ================= */
-$data = mysqli_query($conn, "
+$dataStatus = mysqli_query($conn, "
     SELECT 
         t.id AS transaksi_id,
         t.package_id,
@@ -32,6 +34,7 @@ $data = mysqli_query($conn, "
     JOIN laundry_packages p ON t.package_id = p.id
     JOIN laundry_status s ON t.status_id = s.id
     WHERE s.nama_status != 'Selesai'
+    AND t.user_id = $user_id
     ORDER BY t.id DESC
 ");
 ?>
@@ -67,7 +70,8 @@ $data = mysqli_query($conn, "
             display: flex;
             justify-content: center;
             gap: 12px;
-            flex-wrap: wrap; /* agar menyesuaikan layar sempit */
+            flex-wrap: wrap;
+            /* agar menyesuaikan layar sempit */
         }
 
         .navbar a {
@@ -85,7 +89,12 @@ $data = mysqli_query($conn, "
 
         /* ===== CONTAINER ===== */
         .container {
-            padding: 30px 15px; /* padding horizontal lebih kecil untuk mobile */
+            padding: 30px 15px;
+            /* padding horizontal lebih kecil untuk mobile */
+        }
+
+        .status-section {
+            margin-top: 50px;
         }
 
         h2 {
@@ -98,13 +107,15 @@ $data = mysqli_query($conn, "
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            overflow-x: auto; /* scroll horizontal jika tabel terlalu lebar */
+            overflow-x: auto;
+            /* scroll horizontal jika tabel terlalu lebar */
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 600px; /* agar tidak terlalu sempit di mobile */
+            min-width: 600px;
+            /* agar tidak terlalu sempit di mobile */
         }
 
         th {
@@ -149,7 +160,8 @@ $data = mysqli_query($conn, "
                 min-width: 100%;
             }
 
-            th, td {
+            th,
+            td {
                 padding: 8px;
             }
         }
@@ -168,9 +180,14 @@ $data = mysqli_query($conn, "
                 font-size: 13px;
             }
 
-            th, td {
+            th,
+            td {
                 padding: 6px;
             }
+        }
+
+        h2 {
+            margin-bottom: 5px;
         }
     </style>
 
@@ -183,78 +200,66 @@ $data = mysqli_query($conn, "
 
 <body>
 
-    <!-- NAVBAR -->
-    <div class="navbar">
-        <a href="index.php">Dashboard</a>
-        <a href="pelanggan.php">Data Pelanggan</a>
-        <a href="transaksi.php">Transaksi</a>
-        <a href="status.php">Status Laundry</a>
-        <a href="laporan.php">Laporan</a>
-        <a href="pengaturan.php">Pengaturan</a>
-    </div>
-
     <div class="container">
-        <h2>Status Laundry</h2>
+        <div class="status-section" id="status">
+            <h2>Status Laundry</h2>
 
-        <div class="card">
-            <table>
-                <tr>
-                    <th>ID</th>
-                    <th>Pelanggan</th>
-                    <th>Paket</th>
-                    <th>Status Saat Ini</th>
-                    <th>Aksi</th>
-                </tr>
-
-                <?php while ($row = mysqli_fetch_assoc($data)) {
-
-                    /* === AMBIL ALUR STATUS SESUAI PAKET === */
-                    $alur = mysqli_query($conn, "
-                    SELECT psf.status_id, s.nama_status
-                    FROM package_status_flow psf
-                    JOIN laundry_status s ON psf.status_id = s.id
-                    WHERE psf.package_id = '{$row['package_id']}'
-                    ORDER BY psf.urutan
-                ");
-
-                    $list = [];
-                    while ($a = mysqli_fetch_assoc($alur)) {
-                        $list[] = $a;
-                    }
-
-                    /* === CARI STATUS BERIKUTNYA (MAJU 1 STEP) === */
-                    $next = null;
-                    for ($i = 0; $i < count($list); $i++) {
-                        if ($list[$i]['status_id'] == $row['status_id']) {
-                            $next = $list[$i + 1] ?? null;
-                            break;
-                        }
-                    }
-                    ?>
-
+            <div class="status-card">
+                <table>
                     <tr>
-                        <td><?= $row['transaksi_id'] ?></td>
-                        <td><?= $row['pelanggan'] ?></td>
-                        <td><?= $row['nama_paket'] ?></td>
-                        <td><?= $row['nama_status'] ?></td>
-                        <td>
-                            <?php if ($next): ?>
-                                <form method="post">
-                                    <input type="hidden" name="transaksi_id" value="<?= $row['transaksi_id'] ?>">
-                                    <button type="submit" name="status_id" value="<?= $next['status_id'] ?>" class="status-btn"
-                                        onclick="return konfirmasi('<?= $next['nama_status'] ?>')">
-                                        <?= $next['nama_status'] ?>
-                                    </button>
-                                </form>
-                            <?php else: ?>
-                                <strong>Selesai</strong>
-                            <?php endif; ?>
-                        </td>
+                        <th>ID</th>
+                        <th>Pelanggan</th>
+                        <th>Paket</th>
+                        <th>Status Saat Ini</th>
+                        <th>Aksi</th>
                     </tr>
 
-                <?php } ?>
-            </table>
-        </div>
+                    <?php while ($row = mysqli_fetch_assoc($dataStatus)) {
+
+                        $alur = mysqli_query($conn, "
+                        SELECT psf.status_id, s.nama_status
+                        FROM package_status_flow psf
+                        JOIN laundry_status s ON psf.status_id = s.id
+                        WHERE psf.package_id = '{$row['package_id']}'
+                        ORDER BY psf.urutan
+                    ");
+
+                        $list = [];
+                        while ($a = mysqli_fetch_assoc($alur)) {
+                            $list[] = $a;
+                        }
+
+                        $next = null;
+                        for ($i = 0; $i < count($list); $i++) {
+                            if ($list[$i]['status_id'] == $row['status_id']) {
+                                $next = $list[$i + 1] ?? null;
+                                break;
+                            }
+                        }
+                        ?>
+                        <tr>
+                            <td><?= $row['transaksi_id'] ?></td>
+                            <td><?= $row['pelanggan'] ?></td>
+                            <td><?= $row['nama_paket'] ?></td>
+                            <td><?= $row['nama_status'] ?></td>
+                            <td>
+                                <?php if ($next): ?>
+                                    <form method="post">
+                                        <input type="hidden" name="transaksi_id" value="<?= $row['transaksi_id'] ?>">
+                                        <button type="submit" name="status_id" value="<?= $next['status_id'] ?>"
+                                            class="status-btn" onclick="return konfirmasi('<?= $next['nama_status'] ?>')">
+                                            <?= $next['nama_status'] ?>
+                                        </button>
+                                    </form>
+                                <?php else: ?>
+                                    <strong>Selesai</strong>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php } ?>
+                </table>
+            </div>
+        </div>  
     </div>
 
 </body>

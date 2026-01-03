@@ -50,220 +50,184 @@ ob_end_flush();
 <head>
     <title>Login Admin - Laundry STECU</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f4f4f4;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px; /* Tambahkan padding agar modal tidak nempel layar di HP */
+    }
 
-        /* Modal Overlay */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
+    /* Modal Overlay */
+    .modal-overlay {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 
-        /* Modal Container */
+    /* Modal Container */
+    .modal-container {
+        background: white;
+        border-radius: 12px;
+        width: 100%; /* Gunakan 100% agar fleksibel */
+        max-width: 450px; /* Batas maksimal di PC */
+        padding: 30px;
+        position: relative;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Responsive adjustments for Mobile */
+    @media (max-width: 480px) {
         .modal-container {
-            background: white;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 480px;
-            padding: 35px;
-            position: relative;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 20px; /* Perkecil padding di HP */
         }
-
-        /* Close Button */
-        .close-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #999;
-            transition: 0.3s;
-        }
-
-        .close-btn:hover {
-            color: #333;
-        }
-
-        /* Header */
-        .modal-header {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
+        
         .modal-header h2 {
-            color: #2c3e50;
-            font-size: 24px;
-            margin-bottom: 8px;
+            font-size: 20px;
         }
 
-        .modal-header p {
-            color: #777;
-            font-size: 14px;
-        }
-
-        /* Alert */
-        .alert {
-            padding: 12px 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-
-        .alert-error {
-            background: #fee;
-            color: #c33;
-            border: 1px solid #fcc;
-        }
-
-        .alert-success {
-            background: #efe;
-            color: #3c3;
-            border: 1px solid #cfc;
-        }
-
-        /* Form */
-        form {
-            width: 100%;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .form-group label svg {
-            margin-right: 8px;
-            width: 18px;
-            height: 18px;
-        }
-
-        .input-wrapper {
-            position: relative;
-        }
-
-        input[type="text"],
-        input[type="password"] {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: 0.3s;
-        }
-
-        input[type="text"]:focus,
-        input[type="password"]:focus {
-            outline: none;
-            border-color: #2c3e50;
-        }
-
-        input::placeholder {
-            color: #aaa;
-        }
-
-        /* Toggle Password Visibility */
-        .toggle-password {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #999;
-        }
-
-        /* Forgot Password Link */
-        .forgot-password {
-            text-align: right;
-            margin-top: -10px;
-            margin-bottom: 15px;
-        }
-
-        .forgot-password a {
-            color: #2c3e50;
-            text-decoration: none;
-            font-size: 13px;
-            transition: 0.3s;
-        }
-
-        .forgot-password a:hover {
-            color: #34495e;
-            text-decoration: underline;
-        }
-
-        /* Submit Button */
         .submit-btn {
-            width: 100%;
-            padding: 14px;
-            background: #2c3e50;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-            margin-top: 10px;
+            padding: 12px;
         }
+    }
 
-        .submit-btn:hover {
-            background: #34495e;
-        }
+    .close-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #999;
+    }
 
-        /* Footer Links */
-        .modal-footer {
-            text-align: center;
-            margin-top: 20px;
-        }
+    .modal-header {
+        text-align: center;
+        margin-bottom: 25px;
+    }
 
-        .modal-footer a {
-            color: #2c3e50;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-        }
+    .modal-header h2 {
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
 
-        .modal-footer a:hover {
-            text-decoration: underline;
-        }
+    .modal-header p {
+        color: #777;
+        font-size: 14px;
+    }
 
-        .modal-footer .divider {
-            margin: 15px 0;
-            color: #999;
-        }
-    </style>
+    /* Alert */
+    .alert {
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        font-size: 13px;
+        word-wrap: break-word; /* Agar teks error tidak keluar box */
+    }
+
+    .alert-error { background: #fee; color: #c33; border: 1px solid #fcc; }
+    .alert-success { background: #efe; color: #3c3; border: 1px solid #cfc; }
+
+    /* Form */
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    .form-group label {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .form-group label svg {
+        margin-right: 8px;
+        width: 18px;
+        height: 18px;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 16px; /* Ukuran 16px mencegah auto-zoom di iOS Safari */
+        transition: 0.3s;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: #2c3e50;
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 5px;
+    }
+
+    .forgot-password {
+        text-align: right;
+        margin-bottom: 20px;
+    }
+
+    .forgot-password a {
+        color: #2c3e50;
+        text-decoration: none;
+        font-size: 13px;
+    }
+
+    .submit-btn {
+        width: 100%;
+        padding: 14px;
+        background: #2c3e50;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    .submit-btn:hover {
+        background: #34495e;
+    }
+
+    .modal-footer {
+        text-align: center;
+        margin-top: 25px;
+        font-size: 14px;
+    }
+
+    .modal-footer a {
+        color: #2c3e50;
+        text-decoration: none;
+        font-weight: bold;
+    }
+</style>
 </head>
 <body>
     <div class="modal-overlay">

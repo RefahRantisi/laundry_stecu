@@ -48,10 +48,6 @@ $total = mysqli_fetch_assoc(
     <title>Laporan Laundry</title>
 
     <style>
-        body {
-            margin: 0;
-        }
-
         /* RESET */
         * {
             margin: 0;
@@ -73,6 +69,60 @@ $total = mysqli_fetch_assoc(
             -ms-overflow-style: none;
         }
 
+        /* ===== NAVBAR ===== */
+        .navbar {
+            background: #2c3e50;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            min-height: 56px;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 10px 18px;
+            border-radius: 6px;
+            transition: 0.3s;
+        }
+
+        .navbar a:hover {
+            background: #1abc9c;
+        }
+
+        /* Burger Menu Button */
+        .burger-menu {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            position: absolute;
+            left: 15px;
+            z-index: 1000;
+        }
+
+        .burger-menu span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background: white;
+            margin: 5px 0;
+            transition: 0.3s;
+            border-radius: 2px;
+        }
+
+        /* Nav Links Container */
+        .nav-links {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
         /* CONTAINER */
         .container {
             padding: 30px;
@@ -81,6 +131,7 @@ $total = mysqli_fetch_assoc(
         /* JUDUL */
         h2 {
             margin-bottom: 20px;
+            font-size: 24px;
         }
 
         /* FILTER */
@@ -94,6 +145,8 @@ $total = mysqli_fetch_assoc(
 
         .filter-box label {
             margin-right: 10px;
+            font-weight: bold;
+            color: #555;
         }
 
         .filter-box input[type="date"] {
@@ -105,11 +158,12 @@ $total = mysqli_fetch_assoc(
 
         .filter-box button {
             padding: 8px 16px;
-            background: #2f4050;
+            background: #2c3e50;
             color: #fff;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            font-weight: bold;
         }
 
         .filter-box button:hover {
@@ -122,6 +176,7 @@ $total = mysqli_fetch_assoc(
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            overflow-x: auto;
         }
 
         table {
@@ -130,7 +185,7 @@ $total = mysqli_fetch_assoc(
         }
 
         table th {
-            background: #2f4050;
+            background: #2c3e50;
             color: #fff;
             padding: 12px;
             text-align: left;
@@ -164,7 +219,7 @@ $total = mysqli_fetch_assoc(
             display: inline-block;
             margin-top: 20px;
             text-decoration: none;
-            color: #2f4050;
+            color: #2c3e50;
             font-weight: 500;
         }
 
@@ -172,26 +227,196 @@ $total = mysqli_fetch_assoc(
             text-decoration: underline;
         }
 
-        /* ===== NAVBAR ===== */
-        .navbar {
-            background: #2c3e50;
-            padding: 15px;
-            display: flex;
-            justify-content: center;
-            gap: 12px;
+        /* ===== RESPONSIVE DESIGN ===== */
+
+        /* Desktop/Layar Besar (1025px+) */
+        @media (min-width: 1025px) {
+            .container {
+                padding: 30px 50px;
+            }
         }
 
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-            padding: 10px 18px;
-            border-radius: 6px;
-            transition: 0.3s;
+        /* Tablet Lanskap/Laptop Kecil (769px - 1024px) */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .container {
+                padding: 25px 30px;
+            }
+
+            .filter-box,
+            .table-wrapper,
+            .total-box {
+                padding: 18px;
+            }
         }
 
-        .navbar a:hover {
-            background: #1abc9c;
+        /* Ponsel Besar/Tablet (481px - 768px) */
+        @media (min-width: 481px) and (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h2 {
+                font-size: 22px;
+            }
+
+            .filter-box,
+            .table-wrapper,
+            .total-box {
+                padding: 16px;
+            }
+
+            .filter-box form {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                align-items: center;
+            }
+
+            .filter-box label {
+                margin-right: 5px;
+            }
+
+            .filter-box input[type="date"] {
+                margin-right: 5px;
+                padding: 7px;
+            }
+
+            .filter-box button {
+                padding: 7px 14px;
+                font-size: 13px;
+            }
+
+            table th,
+            table td {
+                padding: 10px;
+                font-size: 13px;
+            }
+
+            .total-box strong {
+                font-size: 18px;
+            }
+        }
+
+        /* Ponsel Kecil (320px - 480px) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+
+            h2 {
+                font-size: 20px;
+                margin-bottom: 15px;
+            }
+
+            .filter-box {
+                padding: 15px;
+                margin-bottom: 20px;
+            }
+
+            .filter-box form {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .filter-box label {
+                margin-right: 0;
+                display: block;
+                margin-bottom: 5px;
+            }
+
+            .filter-box input[type="date"] {
+                width: 100%;
+                margin-right: 0;
+                padding: 10px;
+            }
+
+            .filter-box button {
+                width: 100%;
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            .table-wrapper {
+                padding: 12px;
+            }
+
+            table th,
+            table td {
+                padding: 8px 5px;
+                font-size: 11px;
+            }
+
+            .total-box {
+                padding: 15px;
+                text-align: center;
+            }
+
+            .total-box strong {
+                font-size: 18px;
+                display: block;
+                margin-top: 5px;
+            }
+        }
+
+        /* Burger Menu untuk layar < 600px */
+        @media (max-width: 600px) {
+            .burger-menu {
+                display: block;
+            }
+
+            .navbar {
+                justify-content: center;
+                padding: 15px;
+                min-height: 56px;
+            }
+
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: #2c3e50;
+                padding: 0;
+                gap: 0;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                z-index: 999;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .navbar a {
+                width: 100%;
+                text-align: center;
+                padding: 15px 18px;
+                border-radius: 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .navbar a:last-child {
+                border-bottom: none;
+            }
+
+            .navbar a:hover {
+                background: #1abc9c;
+            }
+
+            /* Animasi Burger Menu */
+            .burger-menu.active span:nth-child(1) {
+                transform: rotate(-45deg) translate(-5px, 6px);
+            }
+
+            .burger-menu.active span:nth-child(2) {
+                opacity: 0;
+            }
+
+            .burger-menu.active span:nth-child(3) {
+                transform: rotate(45deg) translate(-5px, -6px);
+            }
         }
     </style>
 
@@ -200,13 +425,22 @@ $total = mysqli_fetch_assoc(
 <body>
     <!-- ===== NAVBAR ===== -->
     <div class="navbar">
-        <a href="index.php">Dashboard</a>
-        <a href="pelanggan.php">Data Pelanggan</a>
-        <a href="transaksi.php">Transaksi</a>
-        <a href="laporan.php">Laporan</a>
-        <a href="pengaturan.php">Pengaturan</a>
-    </div>
+        <!-- Burger Menu Button -->
+        <button class="burger-menu" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
 
+        <!-- Navigation Links -->
+        <div class="nav-links" id="navLinks">
+            <a href="index.php">Dashboard</a>
+            <a href="pelanggan.php">Data Pelanggan</a>
+            <a href="transaksi.php">Transaksi</a>
+            <a href="laporan.php">Laporan</a>
+            <a href="pengaturan.php">Pengaturan</a>
+        </div>
+    </div>
 
     <div class="container">
         <h2>Laporan Laundry</h2>
@@ -215,9 +449,9 @@ $total = mysqli_fetch_assoc(
         <div class="filter-box">
             <form method="GET">
                 <label>Dari:</label>
-                <input type="date" name="from" value="<?= $_GET['from'] ?? '' ?>">
+                <input type="date" name="from" value="">
                 <label>Sampai:</label>
-                <input type="date" name="to" value="<?= $_GET['to'] ?? '' ?>">
+                <input type="date" name="to" value="">
                 <button type="submit">Filter</button>
             </form>
         </div>
@@ -232,31 +466,58 @@ $total = mysqli_fetch_assoc(
                     <th>Total Harga</th>
                     <th>Tanggal</th>
                 </tr>
-
-                <?php if (mysqli_num_rows($query) > 0): ?>
-                    <?php while ($row = mysqli_fetch_assoc($query)): ?>
-                        <tr>
-                            <td><?= htmlspecialchars($row['nama_pelanggan']) ?></td>
-                            <td><?= $row['id_transaksi'] ?></td>
-                            <td><?= htmlspecialchars($row['nama_paket']) ?></td>
-                            <td>Rp <?= number_format($row['total_harga'], 0, ',', '.') ?></td>
-                            <td><?= date('d-m-Y', strtotime($row['tanggal'])) ?></td>
-                        </tr>
-                    <?php endwhile; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="5" align="center">Data tidak ditemukan</td>
-                    </tr>
-                <?php endif; ?>
+                <tr>
+                    <td>John Doe</td>
+                    <td>TRX001</td>
+                    <td>Cuci Setrika</td>
+                    <td>Rp 50.000</td>
+                    <td>01-01-2026</td>
+                </tr>
+                <tr>
+                    <td>Jane Smith</td>
+                    <td>TRX002</td>
+                    <td>Express</td>
+                    <td>Rp 75.000</td>
+                    <td>02-01-2026</td>
+                </tr>
+                <tr>
+                    <td>Ahmad Rizki</td>
+                    <td>TRX003</td>
+                    <td>Cuci Kering</td>
+                    <td>Rp 40.000</td>
+                    <td>03-01-2026</td>
+                </tr>
             </table>
         </div>
 
         <!-- TOTAL -->
         <div class="total-box">
             Total Pendapatan:
-            <strong>Rp <?= number_format($total['total_pendapatan'] ?? 0, 0, ',', '.') ?></strong>
+            <strong>Rp 165.000</strong>
         </div>
     </div>
+
+    <script>
+        // Fungsi untuk toggle burger menu
+        function toggleMenu() {
+            const navLinks = document.getElementById('navLinks');
+            const burgerMenu = document.querySelector('.burger-menu');
+
+            navLinks.classList.toggle('active');
+            burgerMenu.classList.toggle('active');
+        }
+
+        // Menutup menu saat link diklik
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                const navLinks = document.getElementById('navLinks');
+                const burgerMenu = document.querySelector('.burger-menu');
+
+                navLinks.classList.remove('active');
+                burgerMenu.classList.remove('active');
+            });
+        });
+    </script>
 
 </body>
 

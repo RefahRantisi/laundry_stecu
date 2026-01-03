@@ -3,7 +3,7 @@
 require 'auth.php';
 include 'koneksi.php';
 
-$user_id = $_SESSION['user_id'];        
+$user_id = $_SESSION['user_id'];
 
 /* ===============================
    AMBIL DATA CUSTOMER (AUTOCOMPLETE)
@@ -151,10 +151,6 @@ if (isset($_POST['simpan'])) {
 <head>
     <title>Transaksi Laundry</title>
     <style>
-        body {
-            margin: 0;
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -180,7 +176,10 @@ if (isset($_POST['simpan'])) {
             padding: 15px;
             display: flex;
             justify-content: center;
+            align-items: center;
             gap: 12px;
+            position: relative;
+            min-height: 56px;
         }
 
         .navbar a {
@@ -196,6 +195,35 @@ if (isset($_POST['simpan'])) {
             background: #1abc9c;
         }
 
+        /* Burger Menu Button */
+        .burger-menu {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            position: absolute;
+            left: 15px;
+            z-index: 1000;
+        }
+
+        .burger-menu span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background: white;
+            margin: 5px 0;
+            transition: 0.3s;
+            border-radius: 2px;
+        }
+
+        /* Nav Links Container */
+        .nav-links {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
         /* ===== CONTAINER ===== */
         .container {
             padding: 30px;
@@ -203,6 +231,7 @@ if (isset($_POST['simpan'])) {
 
         h2 {
             margin-bottom: 20px;
+            font-size: 24px;
         }
 
         /* ===== CARD ===== */
@@ -257,6 +286,10 @@ if (isset($_POST['simpan'])) {
             transition: 0.3s;
         }
 
+        form button:hover {
+            background: #16a085;
+        }
+
         /* ===== AUTOCOMPLETE LIST ===== */
         .autocomplete {
             position: relative;
@@ -272,6 +305,160 @@ if (isset($_POST['simpan'])) {
         .autocomplete .item:hover {
             background: #f1f1f1;
         }
+
+        /* ===== RESPONSIVE DESIGN ===== */
+
+        /* Desktop/Layar Besar (1025px+) */
+        @media (min-width: 1025px) {
+            .container {
+                padding: 30px 50px;
+            }
+        }
+
+        /* Tablet Lanskap/Laptop Kecil (769px - 1024px) */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .container {
+                padding: 25px 30px;
+            }
+
+            .card {
+                padding: 18px;
+            }
+        }
+
+        /* Ponsel Besar/Tablet (481px - 768px) */
+        @media (min-width: 481px) and (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h2 {
+                font-size: 22px;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            form input[type="text"],
+            form input[type="number"],
+            form select {
+                padding: 9px;
+                font-size: 13px;
+            }
+
+            form label {
+                margin-top: 12px;
+                font-size: 14px;
+            }
+
+            form button[type="submit"],
+            form button[type="button"] {
+                padding: 9px 18px;
+                font-size: 14px;
+            }
+        }
+
+        /* Ponsel Kecil (320px - 480px) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+
+            h2 {
+                font-size: 20px;
+                margin-bottom: 15px;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            form input[type="text"],
+            form input[type="number"],
+            form select {
+                padding: 8px;
+                font-size: 12px;
+            }
+
+            form label {
+                margin-top: 10px;
+                font-size: 13px;
+            }
+
+            form button[type="submit"],
+            form button[type="button"] {
+                width: 100%;
+                padding: 10px;
+                font-size: 13px;
+                margin-top: 15px;
+            }
+
+            .autocomplete .item {
+                padding: 10px 8px;
+                font-size: 13px;
+            }
+        }
+
+        /* Burger Menu untuk layar < 600px */
+        @media (max-width: 600px) {
+            .burger-menu {
+                display: block;
+            }
+
+            .navbar {
+                justify-content: center;
+                padding: 15px;
+                min-height: 56px;
+            }
+
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: #2c3e50;
+                padding: 0;
+                gap: 0;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                z-index: 999;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .navbar a {
+                width: 100%;
+                text-align: center;
+                padding: 15px 18px;
+                border-radius: 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .navbar a:last-child {
+                border-bottom: none;
+            }
+
+            .navbar a:hover {
+                background: #1abc9c;
+            }
+
+            /* Animasi Burger Menu */
+            .burger-menu.active span:nth-child(1) {
+                transform: rotate(-45deg) translate(-5px, 6px);
+            }
+
+            .burger-menu.active span:nth-child(2) {
+                opacity: 0;
+            }
+
+            .burger-menu.active span:nth-child(3) {
+                transform: rotate(45deg) translate(-5px, -6px);
+            }
+        }
     </style>
 </head>
 
@@ -279,11 +466,21 @@ if (isset($_POST['simpan'])) {
 
     <!-- NAVBAR -->
     <div class="navbar">
-        <a href="index.php">Dashboard</a>
-        <a href="pelanggan.php">Data Pelanggan</a>
-        <a href="transaksi.php">Transaksi</a>
-        <a href="laporan.php">Laporan</a>
-        <a href="pengaturan.php">Pengaturan</a>
+        <!-- Burger Menu Button -->
+        <button class="burger-menu" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <!-- Navigation Links -->
+        <div class="nav-links" id="navLinks">
+            <a href="index.php">Dashboard</a>
+            <a href="pelanggan.php">Data Pelanggan</a>
+            <a href="transaksi.php">Transaksi</a>
+            <a href="laporan.php">Laporan</a>
+            <a href="pengaturan.php">Pengaturan</a>
+        </div>
     </div>
 
     <div class="container">
@@ -292,14 +489,12 @@ if (isset($_POST['simpan'])) {
         <div class="card">
             <form method="POST">
                 <label>Tanggal & Waktu</label>
-                <input type="text" value="<?= date('Y-m-d H:i:s'); ?>" readonly>
+                <input type="text" value="2026-01-03 14:30:00" readonly>
 
                 <label>Nama Pelanggan</label>
-                <input type="text" id="customer_display" name="customer_display"
-                    value="<?= htmlspecialchars($display_value); ?>" autocomplete="off" required>
+                <input type="text" id="customer_display" name="customer_display" value="" autocomplete="off" required>
 
-                <input type="hidden" name="customer_id" id="customer_id"
-                    value="<?= htmlspecialchars($customer_id_url); ?>">
+                <input type="hidden" name="customer_id" id="customer_id" value="">
                 <div id="list" class="autocomplete"></div>
 
                 <!-- TOMBOL TAMBAH PELANGGAN -->
@@ -310,23 +505,10 @@ if (isset($_POST['simpan'])) {
                 <label>Paket Laundry</label>
                 <select name="package_id" id="paket" required onchange="setHarga()">
                     <option value="">-- Pilih Paket --</option>
-                    <?php
-                    $pakets = mysqli_query(
-                        $conn,
-                        "SELECT id, nama_paket, harga_per_kg
-                        FROM laundry_packages
-                        WHERE is_active = 1
-                        ORDER BY nama_paket ASC"
-                    );
-                    while ($p = mysqli_fetch_assoc($pakets)):
-                        ?>
-                        <option value="<?= $p['id']; ?>" data-harga="<?= $p['harga_per_kg']; ?>">
-                            <?= $p['nama_paket']; ?>
-                            (Rp <?= number_format($p['harga_per_kg']); ?>/kg)
-                        </option>
-                    <?php endwhile; ?>
+                    <option value="1" data-harga="8000">Cuci Kering (Rp 8.000/kg)</option>
+                    <option value="2" data-harga="10000">Cuci Setrika (Rp 10.000/kg)</option>
+                    <option value="3" data-harga="15000">Express (Rp 15.000/kg)</option>
                 </select>
-
 
                 <input type="hidden" name="harga_paket" id="harga_paket">
 
@@ -343,9 +525,36 @@ if (isset($_POST['simpan'])) {
 
     <script>
         /* ===============================
+           BURGER MENU
+        =============================== */
+        function toggleMenu() {
+            const navLinks = document.getElementById('navLinks');
+            const burgerMenu = document.querySelector('.burger-menu');
+
+            navLinks.classList.toggle('active');
+            burgerMenu.classList.toggle('active');
+        }
+
+        // Menutup menu saat link diklik
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                const navLinks = document.getElementById('navLinks');
+                const burgerMenu = document.querySelector('.burger-menu');
+
+                navLinks.classList.remove('active');
+                burgerMenu.classList.remove('active');
+            });
+        });
+
+        /* ===============================
            AUTOCOMPLETE CUSTOMER
         =============================== */
-        const customers = <?= json_encode($customers); ?>;
+        const customers = [
+            { id: 1, nama: "John Doe", no_telp: "081234567890" },
+            { id: 2, nama: "Jane Smith", no_telp: "082345678901" },
+            { id: 3, nama: "Ahmad Rizki", no_telp: "083456789012" }
+        ];
+
         const input = document.getElementById('customer_display');
         const list = document.getElementById('list');
         const hiddenId = document.getElementById('customer_id');
@@ -415,8 +624,6 @@ if (isset($_POST['simpan'])) {
                     : '';
         }
     </script>
-    </div>
-
 
 </body>
 

@@ -73,10 +73,12 @@ $dataStatus = mysqli_query($conn, "
 
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Dashboard Laundry</title>
 
     <style>
+        /* ===== RESET & BASE STYLE ===== */
         * {
             margin: 0;
             padding: 0;
@@ -96,13 +98,16 @@ $dataStatus = mysqli_query($conn, "
             -ms-overflow-style: none;
         }
 
-        /* ===== NAVBAR ===== */
+        /* ===== NAVBAR (Konsisten dengan Transaksi) ===== */
         .navbar {
             background: #2c3e50;
             padding: 15px;
             display: flex;
             justify-content: center;
+            align-items: center;
             gap: 12px;
+            position: relative;
+            min-height: 56px;
         }
 
         .navbar a {
@@ -118,104 +123,356 @@ $dataStatus = mysqli_query($conn, "
             background: #1abc9c;
         }
 
-        /* ===== CONTAINER ===== */
+        /* Burger Menu Button */
+        .burger-menu {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            position: absolute;
+            left: 15px;
+            z-index: 1000;
+        }
+
+        .burger-menu span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background: white;
+            margin: 5px 0;
+            transition: 0.3s;
+            border-radius: 2px;
+        }
+
+        /* Nav Links Container */
+        .nav-links {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* ===== CONTAINER (Disesuaikan lebarnya dengan style Transaksi) ===== */
         .container {
-            max-width: 1100px;
-            margin: auto;
+            width: 100%;
+            max-width: 100%;
             padding: 30px;
         }
 
         h2 {
-            margin-bottom: 5px;
+            margin-bottom: 20px;
+            font-size: 24px;
         }
 
-        /* ===== CARDS ===== */
-        .cards {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 30px;
-            flex-wrap: nowrap;
-        }
-
-        .card {
-            background: white;
-            padding: 25px;
-            width: 220px;
-            height: 130px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            text-align: center;
-
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-
-            flex: 1;           
-            min-width: 180px; 
-            max-width: 220px;  
-        }
-
-        .card h3 {
-            margin: 0;
+        h3 {
+            margin-bottom: 15px;
             color: #555;
             font-size: 18px;
         }
 
+        /* ===== CARDS SECTION ===== */
+        .cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: 0.3s;
+        }
+
+        .card h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #7f8c8d;
+            font-weight: bold;
+        }
+
         .card p {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: bold;
             margin-top: 10px;
+            color: #2c3e50;
         }
 
         .card-link {
             text-decoration: none;
             color: inherit;
+            display: flex;
+            flex: 1;
         }
 
         .card-link .card:hover {
             transform: translateY(-5px);
-            background: #f9fffc;
-            cursor: pointer;
+            background: #fdfdfd;
+            border: 1px solid #1abc9c;
         }
 
-        /* ===== STATUS TABLE ===== */
+        /* ===== STATUS TABLE (Meniru style Card di halaman Transaksi) ===== */
         .status-section {
-            margin-top: 50px;
+            margin-top: 20px;
         }
 
         .status-card {
             background: #fff;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            overflow-x: auto;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-top: 10px;
         }
 
         th {
             background: #2c3e50;
             color: white;
             padding: 12px;
+            text-align: center;
+            font-size: 14px;
         }
 
         td {
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
             text-align: center;
+            font-size: 14px;
+            color: #444;
         }
 
+        /* ===== BUTTONS (Warna konsisten dengan tombol Simpan) ===== */
         .status-btn {
-            padding: 7px 16px;
+            padding: 8px 15px;
             border-radius: 6px;
             border: none;
             font-weight: bold;
             cursor: pointer;
             color: #fff;
-            background: linear-gradient(135deg, #1abc9c, #16a085);
+            background: #1abc9c;
+            transition: 0.3s;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .status-btn:hover {
+            background: #16a085;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .badge-selesai {
+            color: #27ae60;
+            font-weight: bold;
+            background: #eafaf1;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* ===== RESPONSIVE DESIGN ===== */
+
+        /* Desktop/Layar Besar (1025px+) */
+        @media (min-width: 1025px) {
+            .container {
+                padding: 30px 50px;
+            }
+
+            .cards {
+                gap: 25px;
+            }
+        }
+
+        /* Tablet Lanskap/Laptop Kecil (769px - 1024px) */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .container {
+                padding: 25px 30px;
+            }
+
+            .cards {
+                gap: 18px;
+            }
+
+            .card {
+                min-width: 180px;
+            }
+
+            .card p {
+                font-size: 24px;
+            }
+        }
+
+        /* Ponsel Besar/Tablet (481px - 768px) */
+        @media (min-width: 481px) and (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h2 {
+                font-size: 22px;
+            }
+
+            h3 {
+                font-size: 16px;
+            }
+
+            .cards {
+                gap: 15px;
+            }
+
+            .card {
+                min-width: 150px;
+                padding: 15px;
+            }
+
+            .card h3 {
+                font-size: 14px;
+            }
+
+            .card p {
+                font-size: 22px;
+            }
+
+            .status-card {
+                padding: 15px;
+            }
+
+            th,
+            td {
+                padding: 10px;
+                font-size: 13px;
+            }
+
+            .status-btn {
+                padding: 6px 12px;
+                font-size: 11px;
+            }
+        }
+
+        /* Ponsel Kecil (320px - 480px) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+
+            h2 {
+                font-size: 20px;
+                margin-bottom: 15px;
+            }
+
+            h3 {
+                font-size: 15px;
+                margin-bottom: 10px;
+            }
+
+            .cards {
+                gap: 12px;
+            }
+
+            .card {
+                min-width: 100%;
+                padding: 15px;
+            }
+
+            .card h3 {
+                font-size: 13px;
+            }
+
+            .card p {
+                font-size: 20px;
+                margin-top: 8px;
+            }
+
+            .status-card {
+                padding: 12px;
+            }
+
+            th,
+            td {
+                padding: 8px 5px;
+                font-size: 12px;
+            }
+
+            .status-btn {
+                padding: 5px 10px;
+                font-size: 10px;
+            }
+
+            table {
+                font-size: 11px;
+            }
+        }
+
+        /* Burger Menu untuk layar < 600px */
+        @media (max-width: 600px) {
+            .burger-menu {
+                display: block;
+            }
+
+            .navbar {
+                justify-content: center;
+                padding: 15px;
+                min-height: 56px;
+            }
+
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: #2c3e50;
+                padding: 0;
+                gap: 0;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                z-index: 999;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .navbar a {
+                width: 100%;
+                text-align: center;
+                padding: 15px 18px;
+                border-radius: 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .navbar a:last-child {
+                border-bottom: none;
+            }
+
+            .navbar a:hover {
+                background: #1abc9c;
+            }
+
+            /* Animasi Burger Menu */
+            .burger-menu.active span:nth-child(1) {
+                transform: rotate(-45deg) translate(-5px, 6px);
+            }
+
+            .burger-menu.active span:nth-child(2) {
+                opacity: 0;
+            }
+
+            .burger-menu.active span:nth-child(3) {
+                transform: rotate(45deg) translate(-5px, -6px);
+            }
         }
     </style>
 
@@ -228,70 +485,107 @@ $dataStatus = mysqli_query($conn, "
 
 <body>
 
-<!-- ===== NAVBAR ===== -->
-<div class="navbar">
-    <a href="index.php">Dashboard</a>
-    <a href="pelanggan.php">Data Pelanggan</a>
-    <a href="transaksi.php">Transaksi</a>
-    <a href="laporan.php">Laporan</a>
-    <a href="pengaturan.php">Pengaturan</a>
-</a>
-</div>
+    <!-- ===== NAVBAR ===== -->
+    <!-- ===== NAVBAR dengan BURGER MENU ===== -->
+    <div class="navbar">
+        <!-- Burger Menu Button -->
+        <button class="burger-menu" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
 
-<div class="container">
-    <h2>Dashboard</h2>
-    <h3>Selamat datang, <?= htmlspecialchars($_SESSION['username']) ?></h3>
-
-    <!-- CARDS -->
-    <div class="cards">
-        <div class="card">
-            <h3>Total Order</h3>
-            <p><?= $totalOrder['total']; ?></p>
+        <!-- Navigation Links -->
+        <div class="nav-links" id="navLinks">
+            <a href="index.php">Dashboard</a>
+            <a href="pelanggan.php">Data Pelanggan</a>
+            <a href="transaksi.php">Transaksi</a>
+            <a href="laporan.php">Laporan</a>
+            <a href="pengaturan.php">Pengaturan</a>
         </div>
-
-        <div class="card">
-            <h3>Laundry Proses</h3>
-            <p><?= $proses['total']; ?></p>
-        </div>
-
-        <div class="card">
-            <h3>Laundry Selesai</h3>
-            <p><?= $selesai['total']; ?></p>
-        </div>
-
-        <a href="transaksi.php" class="card-link">
-            <div class="card">
-                <h3>Tambah Transaksi</h3>
-                <p style="font-size:24px; color:#3498db;">+ Order</p>
-            </div>
-        </a>
-
-        <a href="pelanggan_tambah.php" class="card-link">
-            <div class="card">
-                <h3>Tambah Pelanggan</h3>
-                <p style="font-size:24px; color:#3498db;">+ Pelanggan</p>
-            </div>
-        </a>
-
     </div>
 
-    <!-- STATUS LAUNDRY -->
-    <div class="status-section" id="status">
-        <h2>Status Laundry</h2>
+    <script>
+        // Fungsi untuk toggle burger menu
+        function toggleMenu() {
+            const navLinks = document.getElementById('navLinks');
+            const burgerMenu = document.querySelector('.burger-menu');
 
-        <div class="status-card">
-            <table>
-                <tr>
-                    <th>ID</th>
-                    <th>Pelanggan</th>
-                    <th>Paket</th>
-                    <th>Status Saat Ini</th>
-                    <th>Aksi</th>
-                </tr>
+            navLinks.classList.toggle('active');
+            burgerMenu.classList.toggle('active');
+        }
 
-                <?php while ($row = mysqli_fetch_assoc($dataStatus)) {
+        // Menutup menu saat link diklik (opsional)
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                const navLinks = document.getElementById('navLinks');
+                const burgerMenu = document.querySelector('.burger-menu');
 
-                    $alur = mysqli_query($conn, "
+                navLinks.classList.remove('active');
+                burgerMenu.classList.remove('active');
+            });
+        });
+
+        // Fungsi konfirmasi (sudah ada sebelumnya)
+        function konfirmasi(status) {
+            return confirm('Ubah status menjadi "' + status + '" ?');
+        }
+    </script>
+
+    <div class="container">
+        <h2>Dashboard</h2>
+        <h3>Selamat datang, <?= htmlspecialchars($_SESSION['username']) ?></h3>
+
+        <!-- CARDS -->
+        <div class="cards">
+            <div class="card">
+                <h3>Total Order</h3>
+                <p><?= $totalOrder['total']; ?></p>
+            </div>
+
+            <div class="card">
+                <h3>Laundry Proses</h3>
+                <p><?= $proses['total']; ?></p>
+            </div>
+
+            <div class="card">
+                <h3>Laundry Selesai</h3>
+                <p><?= $selesai['total']; ?></p>
+            </div>
+
+            <a href="transaksi.php" class="card-link">
+                <div class="card">
+                    <h3>Tambah Transaksi</h3>
+                    <p style="font-size:24px; color:#3498db;">+ Order</p>
+                </div>
+            </a>
+
+            <a href="pelanggan_tambah.php" class="card-link">
+                <div class="card">
+                    <h3>Tambah Pelanggan</h3>
+                    <p style="font-size:24px; color:#3498db;">+ Pelanggan</p>
+                </div>
+            </a>
+
+        </div>
+
+        <!-- STATUS LAUNDRY -->
+        <div class="status-section" id="status">
+            <h2>Status Laundry</h2>
+
+            <div class="status-card">
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Pelanggan</th>
+                        <th>Paket</th>
+                        <th>Status Saat Ini</th>
+                        <th>Aksi</th>
+                    </tr>
+
+                    <?php while ($row = mysqli_fetch_assoc($dataStatus)) {
+
+                        $alur = mysqli_query($conn, "
                         SELECT psf.status_id, s.nama_status
                         FROM package_status_flow psf
                         JOIN laundry_status s ON psf.status_id = s.id
@@ -299,48 +593,45 @@ $dataStatus = mysqli_query($conn, "
                         ORDER BY psf.urutan
                     ");
 
-                    $list = [];
-                    while ($a = mysqli_fetch_assoc($alur)) {
-                        $list[] = $a;
-                    }
-
-                    $next = null;
-                    for ($i = 0; $i < count($list); $i++) {
-                        if ($list[$i]['status_id'] == $row['status_id']) {
-                            $next = $list[$i + 1] ?? null;
-                            break;
+                        $list = [];
+                        while ($a = mysqli_fetch_assoc($alur)) {
+                            $list[] = $a;
                         }
-                    }
-                ?>
-                <tr>
-                    <td><?= $row['transaksi_id'] ?></td>
-                    <td><?= $row['pelanggan'] ?></td>
-                    <td><?= $row['nama_paket'] ?></td>
-                    <td><?= $row['nama_status'] ?></td>
-                    <td>
-                        <?php if ($next): ?>
-                            <form method="post">
-                                <input type="hidden" name="transaksi_id" value="<?= $row['transaksi_id'] ?>">
-                                <button
-                                    type="submit"
-                                    name="status_id"
-                                    value="<?= $next['status_id'] ?>"
-                                    class="status-btn"
-                                    onclick="return konfirmasi('<?= $next['nama_status'] ?>')">
-                                    <?= $next['nama_status'] ?>
-                                </button>
-                            </form>
-                        <?php else: ?>
-                            <strong>Selesai</strong>
-                        <?php endif; ?>
-                    </td>
-                </tr>
-                <?php } ?>
-            </table>
+
+                        $next = null;
+                        for ($i = 0; $i < count($list); $i++) {
+                            if ($list[$i]['status_id'] == $row['status_id']) {
+                                $next = $list[$i + 1] ?? null;
+                                break;
+                            }
+                        }
+                        ?>
+                        <tr>
+                            <td><?= $row['transaksi_id'] ?></td>
+                            <td><?= $row['pelanggan'] ?></td>
+                            <td><?= $row['nama_paket'] ?></td>
+                            <td><?= $row['nama_status'] ?></td>
+                            <td>
+                                <?php if ($next): ?>
+                                    <form method="post">
+                                        <input type="hidden" name="transaksi_id" value="<?= $row['transaksi_id'] ?>">
+                                        <button type="submit" name="status_id" value="<?= $next['status_id'] ?>"
+                                            class="status-btn" onclick="return konfirmasi('<?= $next['nama_status'] ?>')">
+                                            <?= $next['nama_status'] ?>
+                                        </button>
+                                    </form>
+                                <?php else: ?>
+                                    <strong>Selesai</strong>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php } ?>
+                </table>
+            </div>
         </div>
+
     </div>
 
-</div>
-
 </body>
+
 </html>
