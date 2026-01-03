@@ -326,7 +326,6 @@ include 'koneksi.php';
         </div>
     </div>
 
-    <!-- CONTENT -->
     <div class="container">
         <h2>Data Pelanggan</h2>
 
@@ -342,39 +341,23 @@ include 'koneksi.php';
                     <th>Aksi</th>
                 </tr>
 
-                <tr>
-                    <td>1</td>
-                    <td>John Doe</td>
-                    <td>081234567890</td>
-                    <td>Jl. Merdeka No. 123</td>
-                    <td>
-                        <a class="btn btn-edit" href="pelanggan_edit.php?id=1">Edit</a>
-                        <a class="btn btn-delete" href="pelanggan_hapus.php?id=1"
-                            onclick="return confirm('Yakin hapus pelanggan?')">Hapus</a>
-                    </td>
-                </tr>
-                <tr>
-                    <td>2</td>
-                    <td>Jane Smith</td>
-                    <td>082345678901</td>
-                    <td>Jl. Sudirman No. 456</td>
-                    <td>
-                        <a class="btn btn-edit" href="pelanggan_edit.php?id=2">Edit</a>
-                        <a class="btn btn-delete" href="pelanggan_hapus.php?id=2"
-                            onclick="return confirm('Yakin hapus pelanggan?')">Hapus</a>
-                    </td>
-                </tr>
-                <tr>
-                    <td>3</td>
-                    <td>Ahmad Rizki</td>
-                    <td>083456789012</td>
-                    <td>Jl. Gatot Subroto No. 789</td>
-                    <td>
-                        <a class="btn btn-edit" href="pelanggan_edit.php?id=3">Edit</a>
-                        <a class="btn btn-delete" href="pelanggan_hapus.php?id=3"
-                            onclick="return confirm('Yakin hapus pelanggan?')">Hapus</a>
-                    </td>
-                </tr>
+                <?php
+                $no = 1;
+                $data = mysqli_query($conn, "SELECT * FROM customers ORDER BY id DESC");
+                while ($p = mysqli_fetch_assoc($data)) {
+                    ?>
+                    <tr>
+                        <td><?= $no++ ?></td>
+                        <td><?= $p['nama'] ?></td>
+                        <td><?= $p['no_telp'] ?></td>
+                        <td><?= $p['alamat'] ?></td>
+                        <td>
+                            <a class="btn btn-edit" href="pelanggan_edit.php?id=<?= $p['id'] ?>">Edit</a>
+                            <a class="btn btn-delete" href="pelanggan_hapus.php?id=<?= $p['id'] ?>"
+                                onclick="return confirm('Yakin hapus pelanggan?')">Hapus</a>
+                        </td>
+                    </tr>
+                <?php } ?>
             </table>
         </div>
     </div>
