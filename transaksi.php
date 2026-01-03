@@ -29,15 +29,37 @@ $display_value = ($nama_url && $telp_url)
     : '';
 
 /* ===============================
-   AMBIL DATA PAKET LAUNDRY (AKTIF)
+   AMBIL DATA KATEGORI AKTIF
 =============================== */
-$pakets = mysqli_query(
+$kategori_list = mysqli_query(
     $conn,
-    "SELECT id, nama_paket, harga_per_kg
-     FROM laundry_packages
+    "SELECT DISTINCT kategori_barang 
+     FROM laundry_units
      WHERE is_active = 1
-     ORDER BY nama_paket ASC"
+     ORDER BY kategori_barang ASC"
 );
+
+/* ===============================
+   AMBIL DATA PAKET + KATEGORI + SATUAN
+=============================== */
+$pakets_query = mysqli_query(
+    $conn,
+    "SELECT 
+        lp.id, 
+        lp.nama_paket, 
+        lp.harga,
+        lu.kategori_barang,
+        lu.nama_satuan
+     FROM laundry_packages lp
+     JOIN laundry_units lu ON lp.unit_id = lu.id
+     WHERE lp.is_active = 1 AND lu.is_active = 1
+     ORDER BY lu.kategori_barang ASC, lp.nama_paket ASC"
+);
+
+$pakets = [];
+while ($p = mysqli_fetch_assoc($pakets_query)) {
+    $pakets[] = $p;
+}
 
 /* ===============================
    SIMPAN TRANSAKSI
@@ -45,10 +67,10 @@ $pakets = mysqli_query(
 if (isset($_POST['simpan'])) {
 
     $tanggal = date('Y-m-d H:i:s');
-    $berat = floatval($_POST['berat_kg']);
+    $qty = floatval($_POST['qty']);
     $package_id = intval($_POST['package_id']);
     $customer_id = intval($_POST['customer_id']);
-    $user_id = $_SESSION['user_id']; // 🔥 PENTING
+    $user_id = $_SESSION['user_id'];
 
     /* ===============================
        VALIDASI CUSTOMER
@@ -66,12 +88,13 @@ if (isset($_POST['simpan'])) {
     }
 
     /* ===============================
-       VALIDASI PAKET
+       VALIDASI PAKET & AMBIL HARGA
     =============================== */
     $cek_paket = $conn->prepare(
-        "SELECT harga_per_kg
-         FROM laundry_packages
-         WHERE id = ? AND is_active = 1
+        "SELECT lp.harga
+         FROM laundry_packages lp
+         JOIN laundry_units lu ON lp.unit_id = lu.id
+         WHERE lp.id = ? AND lp.is_active = 1 AND lu.is_active = 1
          LIMIT 1"
     );
     $cek_paket->bind_param("i", $package_id);
@@ -84,8 +107,8 @@ if (isset($_POST['simpan'])) {
     }
 
     $row_paket = $result_paket->fetch_assoc();
-    $harga_paket = $row_paket['harga_per_kg'];
-    $total = $harga_paket * $berat;
+    $harga_paket = $row_paket['harga'];
+    $total = $harga_paket * $qty;
 
     /* ===============================
        AMBIL STATUS AWAL
@@ -111,7 +134,7 @@ if (isset($_POST['simpan'])) {
     $status_id = $res_status->fetch_assoc()['status_id'];
 
     /* ===============================
-       SIMPAN KE transactions (BENAR)
+       SIMPAN KE transactions
     =============================== */
     $stmt = $conn->prepare("
         INSERT INTO transactions (
@@ -130,7 +153,7 @@ if (isset($_POST['simpan'])) {
         $tanggal,
         $customer_id,
         $package_id,
-        $berat,
+        $qty,
         $total,
         $status_id,
         $user_id
@@ -504,30 +527,29 @@ if (isset($_POST['simpan'])) {
                     <button type="button">+ Tambah Pelanggan</button>
                 </a>
 
-                <label>Paket Laundry</label>
-                <select name="package_id" id="paket" required onchange="setHarga()">
-                    <option value="">-- Pilih Paket --</option>
-                    <?php
-                    $pakets = mysqli_query(
-                        $conn,
-                        "SELECT id, nama_paket, harga_per_kg
-                        FROM laundry_packages
-                        WHERE is_active = 1
-                        ORDER BY nama_paket ASC"
-                    );
-                    while ($p = mysqli_fetch_assoc($pakets)):
-                        ?>
-                        <option value="<?= $p['id']; ?>" data-harga="<?= $p['harga_per_kg']; ?>">
-                            <?= $p['nama_paket']; ?>
-                            (Rp <?= number_format($p['harga_per_kg']); ?>/kg)
+                <!-- DROPDOWN KATEGORI -->
+                <label>Kategori Laundry</label>
+                <select name="kategori" id="kategori" required onchange="filterPaket()">
+                    <option value="">-- Pilih Kategori --</option>
+                    <?php while ($kat = mysqli_fetch_assoc($kategori_list)): ?>
+                        <option value="<?= $kat['kategori_barang']; ?>">
+                            <?= $kat['kategori_barang']; ?>
                         </option>
                     <?php endwhile; ?>
                 </select>
 
-                <input type="hidden" name="harga_paket" id="harga_paket">
+                <!-- DROPDOWN PAKET LAUNDRY -->
+                <label>Paket Laundry</label>
+                <select name="package_id" id="paket" required onchange="setPaket()" disabled>
+                    <option value="">-- Pilih Kategori Terlebih Dahulu --</option>
+                </select>
 
-                <label>Berat (Kg)</label>
-                <input type="number" step="0.1" name="berat_kg" id="berat" oninput="hitungTotal()" required>
+                <input type="hidden" name="harga_paket" id="harga_paket">
+                <input type="hidden" name="satuan" id="satuan_hidden">
+
+                <!-- LABEL DINAMIS UNTUK QTY -->
+                <label id="label_qty">Jumlah</label>
+                <input type="number" step="0.1" name="qty" id="qty" oninput="hitungTotal()" required>
 
                 <label>Total Harga</label>
                 <input type="text" id="total" readonly>
@@ -538,6 +560,11 @@ if (isset($_POST['simpan'])) {
     </div>
 
     <script>
+        /* ===============================
+           DATA PAKET (dari PHP)
+        =============================== */
+        const allPakets = <?= json_encode($pakets); ?>;
+
         /* ===============================
            BURGER MENU
         =============================== */
@@ -614,22 +641,82 @@ if (isset($_POST['simpan'])) {
         });
 
         /* ===============================
-           HITUNG TOTAL
+           FILTER PAKET BERDASARKAN KATEGORI
         =============================== */
-        function setHarga() {
+        function filterPaket() {
+            const kategori = document.getElementById('kategori').value;
+            const paketSelect = document.getElementById('paket');
+
+            // Reset paket dropdown
+            paketSelect.innerHTML = '<option value="">-- Pilih Paket --</option>';
+            paketSelect.disabled = false;
+
+            // Reset nilai
+            document.getElementById('harga_paket').value = '';
+            document.getElementById('satuan_hidden').value = '';
+            document.getElementById('qty').value = '';
+            document.getElementById('total').value = '';
+            document.getElementById('label_qty').textContent = 'Jumlah';
+
+            if (!kategori) {
+                paketSelect.disabled = true;
+                paketSelect.innerHTML = '<option value="">-- Pilih Kategori Terlebih Dahulu --</option>';
+                return;
+            }
+
+            // Filter paket berdasarkan kategori
+            const filteredPakets = allPakets.filter(p => p.kategori_barang === kategori);
+
+            if (filteredPakets.length === 0) {
+                paketSelect.innerHTML = '<option value="">-- Tidak Ada Paket --</option>';
+                paketSelect.disabled = true;
+                return;
+            }
+
+            // Tambahkan paket yang sesuai
+            filteredPakets.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p.id;
+                option.setAttribute('data-harga', p.harga);
+                option.setAttribute('data-satuan', p.nama_satuan);
+                option.textContent = `${p.nama_paket} (Rp ${parseFloat(p.harga).toLocaleString('id-ID')}/${p.nama_satuan})`;
+                paketSelect.appendChild(option);
+            });
+        }
+
+        /* ===============================
+           SET PAKET & UPDATE LABEL
+        =============================== */
+        function setPaket() {
             const select = document.getElementById('paket');
-            const harga = select.options[select.selectedIndex].dataset.harga || 0;
+            const selectedOption = select.options[select.selectedIndex];
+
+            const harga = selectedOption.getAttribute('data-harga') || 0;
+            const satuan = selectedOption.getAttribute('data-satuan') || '';
+
             document.getElementById('harga_paket').value = harga;
+            document.getElementById('satuan_hidden').value = satuan;
+
+            // Update label qty sesuai satuan
+            if (satuan) {
+                document.getElementById('label_qty').textContent = `Jumlah (${satuan})`;
+            } else {
+                document.getElementById('label_qty').textContent = 'Jumlah';
+            }
+
             hitungTotal();
         }
 
+        /* ===============================
+           HITUNG TOTAL
+        =============================== */
         function hitungTotal() {
             const harga = document.getElementById('harga_paket').value || 0;
-            const berat = document.getElementById('berat').value || 0;
+            const qty = document.getElementById('qty').value || 0;
 
             document.getElementById('total').value =
-                (harga && berat)
-                    ? "Rp " + (harga * berat).toLocaleString('id-ID')
+                (harga && qty)
+                    ? "Rp " + (parseFloat(harga) * parseFloat(qty)).toLocaleString('id-ID')
                     : '';
         }
     </script>

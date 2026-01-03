@@ -342,6 +342,7 @@ require 'auth.php';
             <!-- Section 1: Paket dan Status -->
             <div class="section">
                 <h3>Paket dan Status</h3>
+                <a href="pengaturan_kategori.php" class="menu-link">Pengaturan Kategori</a>
                 <a href="pengaturan_paket.php" class="menu-link">Pengaturan Paket</a>
                 <a href="pengaturan_status.php" class="menu-link">Pengaturan Status</a>
                 <a href="pengaturan_alur.php" class="menu-link">Pengaturan Alur Paket</a>

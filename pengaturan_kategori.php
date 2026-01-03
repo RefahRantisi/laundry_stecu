@@ -4,44 +4,46 @@ require 'auth.php';
 include 'koneksi.php';
 
 /* =========================
-   TAMBAH / EDIT PAKET
+   TAMBAH / EDIT KATEGORI & SATUAN
 ========================= */
 if (isset($_POST['simpan'])) {
-    $nama    = mysqli_real_escape_string($conn, $_POST['nama_paket']);
-    $unit_id = (int) $_POST['unit_id'];
-    $harga   = (float) $_POST['harga'];
+    $kategori = mysqli_real_escape_string($conn, $_POST['kategori_barang']);
+    $satuan   = mysqli_real_escape_string($conn, $_POST['nama_satuan']);
+    $ket      = mysqli_real_escape_string($conn, $_POST['keterangan']);
 
     if (!empty($_POST['id'])) {
         $id = (int) $_POST['id'];
         mysqli_query($conn, "
-            UPDATE laundry_packages 
-            SET nama_paket='$nama', unit_id='$unit_id', harga='$harga'
+            UPDATE laundry_units 
+            SET kategori_barang='$kategori', 
+                nama_satuan='$satuan', 
+                keterangan='$ket'
             WHERE id='$id'
         ");
     } else {
         mysqli_query($conn, "
-            INSERT INTO laundry_packages (nama_paket, unit_id, harga, is_active)
-            VALUES ('$nama', '$unit_id', '$harga', 1)
+            INSERT INTO laundry_units (kategori_barang, nama_satuan, keterangan, is_active)
+            VALUES ('$kategori', '$satuan', '$ket', 1)
         ");
     }
 
-    header("Location: pengaturan_paket.php");
+    header("Location: pengaturan_kategori.php");
     exit;
 }
 
 /* =========================
-   NONAKTIFKAN PAKET (SOFT DELETE)
+   NONAKTIFKAN KATEGORI (SOFT DELETE)
 ========================= */
 if (isset($_GET['hapus'])) {
     $id = (int) $_GET['hapus'];
 
     mysqli_query($conn, "
-        UPDATE laundry_packages 
+        UPDATE laundry_units 
         SET is_active = 0 
         WHERE id='$id'
     ");
 
-    header("Location: pengaturan_paket.php");
+    header("Location: pengaturan_kategori.php");
     exit;
 }
 
@@ -52,33 +54,19 @@ $edit = null;
 if (isset($_GET['edit'])) {
     $id = (int) $_GET['edit'];
     $q = mysqli_query($conn, "
-        SELECT * FROM laundry_packages 
+        SELECT * FROM laundry_units 
         WHERE id='$id' AND is_active=1
     ");
     $edit = mysqli_fetch_assoc($q);
 }
 
 /* =========================
-   DATA KATEGORI AKTIF (untuk dropdown)
-========================= */
-$kategori_list = mysqli_query($conn, "
-    SELECT * FROM laundry_units 
-    WHERE is_active = 1 
-    ORDER BY kategori_barang ASC
-");
-
-/* =========================
-   DATA LIST PAKET (HANYA AKTIF) + JOIN dengan laundry_units
+   DATA LIST (HANYA AKTIF)
 ========================= */
 $data = mysqli_query($conn, "
-    SELECT 
-        lp.*,
-        lu.kategori_barang,
-        lu.nama_satuan
-    FROM laundry_packages lp
-    LEFT JOIN laundry_units lu ON lp.unit_id = lu.id
-    WHERE lp.is_active = 1
-    ORDER BY lp.id DESC
+    SELECT * FROM laundry_units
+    WHERE is_active = 1
+    ORDER BY id DESC
 ");
 ?>
 
@@ -87,7 +75,7 @@ $data = mysqli_query($conn, "
 <html>
 
 <head>
-    <title>Pengaturan Paket</title>
+    <title>Pengaturan Kategori & Satuan</title>
     <style>
         body {
             font-family: Arial;
@@ -131,12 +119,17 @@ $data = mysqli_query($conn, "
             text-align: left;
         }
 
-        input, select {
+        input, textarea {
             padding: 8px;
             width: 100%;
             box-sizing: border-box;
             border: 1px solid #ddd;
             border-radius: 4px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
         }
 
         label {
@@ -215,69 +208,50 @@ $data = mysqli_query($conn, "
         <!-- TOMBOL KEMBALI KE PENGATURAN -->
         <a href="pengaturan.php" class="btn-back">← Kembali ke Pengaturan</a>
 
-        <h2><?= $edit ? 'Edit Paket' : 'Tambah Paket' ?></h2>
+        <h2><?= $edit ? 'Edit Kategori & Satuan' : 'Tambah Kategori & Satuan' ?></h2>
 
         <form method="post">
             <input type="hidden" name="id" value="<?= $edit['id'] ?? '' ?>">
 
-            <label>Nama Paket</label>
-            <input type="text" name="nama_paket" required value="<?= $edit['nama_paket'] ?? '' ?>" placeholder="Contoh: Paket Cuci Kiloan">
-            <br><br>
-
             <label>Kategori Barang</label>
-            <select name="unit_id" id="kategori" required>
-                <option value="">-- Pilih Kategori --</option>
-                <?php 
-                mysqli_data_seek($kategori_list, 0); // reset pointer
-                while ($kat = mysqli_fetch_assoc($kategori_list)) { 
-                    $selected = ($edit && $edit['unit_id'] == $kat['id']) ? 'selected' : '';
-                ?>
-                    <option value="<?= $kat['id'] ?>" 
-                            data-satuan="<?= $kat['nama_satuan'] ?>"
-                            <?= $selected ?>>
-                        <?= $kat['kategori_barang'] ?>
-                    </option>
-                <?php } ?>
-            </select>
+            <input type="text" name="kategori_barang" required value="<?= $edit['kategori_barang'] ?? '' ?>" placeholder="Contoh: Baju, Sepatu, Selimut">
             <br><br>
 
-            <label>Satuan</label>
-            <input type="text" id="satuan" readonly placeholder="Otomatis terisi" value="<?= $edit ? mysqli_fetch_assoc(mysqli_query($conn, "SELECT nama_satuan FROM laundry_units WHERE id='{$edit['unit_id']}'"))['nama_satuan'] ?? '' : '' ?>" style="background: #f0f0f0;">
+            <label>Nama Satuan</label>
+            <input type="text" name="nama_satuan" required value="<?= $edit['nama_satuan'] ?? '' ?>" placeholder="Contoh: Kg, Pasang, Pcs">
             <br><br>
 
-            <label>Harga</label>
-            <input type="number" name="harga" step="0.01" required value="<?= $edit['harga'] ?? '' ?>" placeholder="Contoh: 5000">
+            <label>Keterangan</label>
+            <textarea name="keterangan" placeholder="Keterangan tambahan (opsional)"><?= $edit['keterangan'] ?? '' ?></textarea>
             <br><br>
 
             <button type="submit" name="simpan">
-                <?= $edit ? 'Update Paket' : 'Simpan Paket' ?>
+                <?= $edit ? 'Update Data' : 'Simpan Data' ?>
             </button>
 
             <?php if ($edit): ?>
-                <a href="pengaturan_paket.php" class="btn-cancel">Batal</a>
+                <a href="pengaturan_kategori.php" class="btn-cancel">Batal</a>
             <?php endif; ?>
         </form>
 
-        <h3>Daftar Paket</h3>
+        <h3>Daftar Kategori & Satuan</h3>
         <table>
             <tr>
-                <th>Nama Paket</th>
                 <th>Kategori Barang</th>
-                <th>Satuan</th>
-                <th>Harga</th>
+                <th>Nama Satuan</th>
+                <th>Keterangan</th>
                 <th>Aksi</th>
             </tr>
 
             <?php while ($row = mysqli_fetch_assoc($data)) { ?>
                 <tr>
-                    <td><?= $row['nama_paket'] ?></td>
-                    <td><?= $row['kategori_barang'] ?? '-' ?></td>
-                    <td><?= $row['nama_satuan'] ?? '-' ?></td>
-                    <td>Rp <?= number_format($row['harga'], 0, ',', '.') ?></td>
+                    <td><?= $row['kategori_barang'] ?></td>
+                    <td><?= $row['nama_satuan'] ?></td>
+                    <td><?= $row['keterangan'] ?: '-' ?></td>
                     <td class="aksi">
                         <a href="?edit=<?= $row['id'] ?>" class="btn btn-edit">Edit</a>
                         <a href="?hapus=<?= $row['id'] ?>" class="btn btn-delete"
-                           onclick="return confirm('Hapus paket ini?')">
+                           onclick="return confirm('Hapus data ini?')">
                             Hapus
                         </a>
                     </td>
@@ -285,34 +259,6 @@ $data = mysqli_query($conn, "
             <?php } ?>
         </table>
     </div>
-
-    <!-- JAVASCRIPT untuk Auto-fill Satuan -->
-    <script>
-        const kategoriSelect = document.getElementById('kategori');
-        const satuanInput = document.getElementById('satuan');
-
-        kategoriSelect.addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            const satuan = selectedOption.getAttribute('data-satuan');
-            
-            if (satuan) {
-                satuanInput.value = satuan;
-            } else {
-                satuanInput.value = '';
-            }
-        });
-
-        // Trigger pada saat halaman load (untuk mode edit)
-        window.addEventListener('DOMContentLoaded', function() {
-            if (kategoriSelect.value) {
-                const selectedOption = kategoriSelect.options[kategoriSelect.selectedIndex];
-                const satuan = selectedOption.getAttribute('data-satuan');
-                if (satuan) {
-                    satuanInput.value = satuan;
-                }
-            }
-        });
-    </script>
 
 </body>
 
