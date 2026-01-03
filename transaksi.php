@@ -489,12 +489,14 @@ if (isset($_POST['simpan'])) {
         <div class="card">
             <form method="POST">
                 <label>Tanggal & Waktu</label>
-                <input type="text" value="2026-01-03 14:30:00" readonly>
+                <input type="text" value="<?= date('Y-m-d H:i:s'); ?>" readonly>
 
                 <label>Nama Pelanggan</label>
-                <input type="text" id="customer_display" name="customer_display" value="" autocomplete="off" required>
+                <input type="text" id="customer_display" name="customer_display"
+                    value="<?= htmlspecialchars($display_value); ?>" autocomplete="off" required>
 
-                <input type="hidden" name="customer_id" id="customer_id" value="">
+                <input type="hidden" name="customer_id" id="customer_id"
+                    value="<?= htmlspecialchars($customer_id_url); ?>">
                 <div id="list" class="autocomplete"></div>
 
                 <!-- TOMBOL TAMBAH PELANGGAN -->
@@ -505,9 +507,21 @@ if (isset($_POST['simpan'])) {
                 <label>Paket Laundry</label>
                 <select name="package_id" id="paket" required onchange="setHarga()">
                     <option value="">-- Pilih Paket --</option>
-                    <option value="1" data-harga="8000">Cuci Kering (Rp 8.000/kg)</option>
-                    <option value="2" data-harga="10000">Cuci Setrika (Rp 10.000/kg)</option>
-                    <option value="3" data-harga="15000">Express (Rp 15.000/kg)</option>
+                    <?php
+                    $pakets = mysqli_query(
+                        $conn,
+                        "SELECT id, nama_paket, harga_per_kg
+                        FROM laundry_packages
+                        WHERE is_active = 1
+                        ORDER BY nama_paket ASC"
+                    );
+                    while ($p = mysqli_fetch_assoc($pakets)):
+                        ?>
+                        <option value="<?= $p['id']; ?>" data-harga="<?= $p['harga_per_kg']; ?>">
+                            <?= $p['nama_paket']; ?>
+                            (Rp <?= number_format($p['harga_per_kg']); ?>/kg)
+                        </option>
+                    <?php endwhile; ?>
                 </select>
 
                 <input type="hidden" name="harga_paket" id="harga_paket">
@@ -549,12 +563,7 @@ if (isset($_POST['simpan'])) {
         /* ===============================
            AUTOCOMPLETE CUSTOMER
         =============================== */
-        const customers = [
-            { id: 1, nama: "John Doe", no_telp: "081234567890" },
-            { id: 2, nama: "Jane Smith", no_telp: "082345678901" },
-            { id: 3, nama: "Ahmad Rizki", no_telp: "083456789012" }
-        ];
-
+        const customers = <?= json_encode($customers); ?>;
         const input = document.getElementById('customer_display');
         const list = document.getElementById('list');
         const hiddenId = document.getElementById('customer_id');

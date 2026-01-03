@@ -449,9 +449,9 @@ $total = mysqli_fetch_assoc(
         <div class="filter-box">
             <form method="GET">
                 <label>Dari:</label>
-                <input type="date" name="from" value="">
+                <input type="date" name="from" value="<?= $_GET['from'] ?? '' ?>">
                 <label>Sampai:</label>
-                <input type="date" name="to" value="">
+                <input type="date" name="to" value="<?= $_GET['to'] ?? '' ?>">
                 <button type="submit">Filter</button>
             </form>
         </div>
@@ -466,34 +466,29 @@ $total = mysqli_fetch_assoc(
                     <th>Total Harga</th>
                     <th>Tanggal</th>
                 </tr>
-                <tr>
-                    <td>John Doe</td>
-                    <td>TRX001</td>
-                    <td>Cuci Setrika</td>
-                    <td>Rp 50.000</td>
-                    <td>01-01-2026</td>
-                </tr>
-                <tr>
-                    <td>Jane Smith</td>
-                    <td>TRX002</td>
-                    <td>Express</td>
-                    <td>Rp 75.000</td>
-                    <td>02-01-2026</td>
-                </tr>
-                <tr>
-                    <td>Ahmad Rizki</td>
-                    <td>TRX003</td>
-                    <td>Cuci Kering</td>
-                    <td>Rp 40.000</td>
-                    <td>03-01-2026</td>
-                </tr>
+
+                <?php if (mysqli_num_rows($query) > 0): ?>
+                    <?php while ($row = mysqli_fetch_assoc($query)): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($row['nama_pelanggan']) ?></td>
+                            <td><?= $row['id_transaksi'] ?></td>
+                            <td><?= htmlspecialchars($row['nama_paket']) ?></td>
+                            <td>Rp <?= number_format($row['total_harga'], 0, ',', '.') ?></td>
+                            <td><?= date('d-m-Y', strtotime($row['tanggal'])) ?></td>
+                        </tr>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="5" align="center">Data tidak ditemukan</td>
+                    </tr>
+                <?php endif; ?>
             </table>
         </div>
 
         <!-- TOTAL -->
         <div class="total-box">
             Total Pendapatan:
-            <strong>Rp 165.000</strong>
+            <strong>Rp <?= number_format($total['total_pendapatan'] ?? 0, 0, ',', '.') ?></strong>
         </div>
     </div>
 
