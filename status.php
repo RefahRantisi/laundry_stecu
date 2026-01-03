@@ -41,29 +41,23 @@ $data = mysqli_query($conn, "
 
 <head>
     <title>Status Laundry</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
-        body { 
+        body {
             margin: 0;
+            background-color: #f4f6f9;
+            color: #333;
+            font-family: Arial, Helvetica, sans-serif;
         }
 
         * {
-            margin: 0;
-            padding: 0;
             box-sizing: border-box;
-            font-family: Arial, Helvetica, sans-serif;
         }
 
         ::-webkit-scrollbar {
             width: 0;
             height: 0;
-        }
-
-        body {
-            background-color: #f4f6f9;
-            color: #333;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
         }
 
         /* ===== NAVBAR ===== */
@@ -73,6 +67,7 @@ $data = mysqli_query($conn, "
             display: flex;
             justify-content: center;
             gap: 12px;
+            flex-wrap: wrap; /* agar menyesuaikan layar sempit */
         }
 
         .navbar a {
@@ -81,6 +76,7 @@ $data = mysqli_query($conn, "
             font-weight: bold;
             padding: 10px 18px;
             border-radius: 6px;
+            white-space: nowrap;
         }
 
         .navbar a:hover {
@@ -89,11 +85,12 @@ $data = mysqli_query($conn, "
 
         /* ===== CONTAINER ===== */
         .container {
-            padding: 30px;
+            padding: 30px 15px; /* padding horizontal lebih kecil untuk mobile */
         }
 
         h2 {
             margin-bottom: 20px;
+            text-align: center;
         }
 
         .card {
@@ -101,11 +98,13 @@ $data = mysqli_query($conn, "
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            overflow-x: auto; /* scroll horizontal jika tabel terlalu lebar */
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 600px; /* agar tidak terlalu sempit di mobile */
         }
 
         th {
@@ -137,6 +136,41 @@ $data = mysqli_query($conn, "
 
         form {
             margin: 0;
+        }
+
+        /* ===== MEDIA QUERIES ===== */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            table {
+                min-width: 100%;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                font-size: 14px;
+            }
+
+            h2 {
+                font-size: 18px;
+            }
+
+            .status-btn {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+
+            th, td {
+                padding: 6px;
+            }
         }
     </style>
 
