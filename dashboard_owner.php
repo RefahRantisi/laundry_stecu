@@ -2,73 +2,63 @@
 require 'auth.php';
 include 'koneksi.php';
 
-$user_id = $_SESSION['user_id']; // 🔥 ID user login
-
-/* ================= UPDATE STATUS ================= */
-if (isset($_POST['transaksi_id'], $_POST['status_id'])) {
-    $transaksi_id = (int) $_POST['transaksi_id'];
-    $status_id = (int) $_POST['status_id'];
-
-    mysqli_query($conn, "
-        UPDATE transactions 
-        SET status_id = $status_id
-        WHERE id = $transaksi_id 
-        AND user_id = $user_id
-    ");
-
-    header("Location: index.php");
+/* ================== AUTH OWNER ================== */
+if ($_SESSION['role'] !== 'owner') {
+    header("Location: login.php");
     exit;
 }
 
-/* ================= TOTAL ORDER ================= */
-$totalOrder = mysqli_fetch_assoc(
-    mysqli_query($conn, "
-        SELECT COUNT(*) AS total 
-        FROM transactions 
-        WHERE user_id = $user_id
-    ")
-);
+$ownerId = $_SESSION['user_id'];
 
-/* ================= PROSES ================= */
-$proses = mysqli_fetch_assoc(
-    mysqli_query($conn, "
-        SELECT COUNT(*) AS total
-        FROM transactions t
-        JOIN laundry_status s ON t.status_id = s.id
-        WHERE s.is_fixed = 0
-        AND t.user_id = $user_id
-    ")
-);
+/* ================== RINGKASAN ================== */
 
-/* ================= SELESAI ================= */
-$selesai = mysqli_fetch_assoc(
-    mysqli_query($conn, "
-        SELECT COUNT(*) AS total
-        FROM transactions t
-        JOIN laundry_status s ON t.status_id = s.id
-        WHERE s.is_fixed = 2
-        AND t.user_id = $user_id
-    ")
-);
+// Total Cabang
+$qCabang = mysqli_query($conn, "
+    SELECT COUNT(*) AS total 
+    FROM laundries 
+    WHERE owner_id = $ownerId
+");
+$totalCabang = mysqli_fetch_assoc($qCabang);
 
-/* ================= DATA TRANSAKSI ================= */
-$dataStatus = mysqli_query($conn, "
-    SELECT 
-        t.id AS transaksi_id,
-        t.package_id,
-        t.status_id,
-        c.nama AS pelanggan,
-        p.nama_paket,
-        s.nama_status
+// Total Admin
+$qAdmin = mysqli_query($conn, "
+    SELECT COUNT(*) AS total 
+    FROM users 
+    WHERE role = 'admin' AND owner_id = $ownerId
+");
+$totalAdmin = mysqli_fetch_assoc($qAdmin);
+
+// Total Transaksi (dari semua cabang owner)
+$qTransaksi = mysqli_query($conn, "
+    SELECT COUNT(t.id) AS total
     FROM transactions t
-    JOIN customers c ON t.customer_id = c.id
-    JOIN laundry_packages p ON t.package_id = p.id
-    JOIN laundry_status s ON t.status_id = s.id
-    WHERE s.nama_status != 'Selesai'
-    AND t.user_id = $user_id
-    ORDER BY t.id DESC
+    JOIN users u ON t.user_id = u.id
+    WHERE u.owner_id = $ownerId
+");
+$totalTransaksi = mysqli_fetch_assoc($qTransaksi);
+
+// Total Pendapatan (status selesai)
+$qPendapatan = mysqli_query($conn, "
+    SELECT SUM(t.total_harga) AS total
+    FROM transactions t
+    JOIN users u ON t.user_id = u.id
+    WHERE u.owner_id = $ownerId AND t.status_id = 4
+");
+$totalPendapatan = mysqli_fetch_assoc($qPendapatan);
+
+/* ================== GRAFIK PENDAPATAN PER CABANG ================== */
+$qGrafik = mysqli_query($conn, "
+    SELECT 
+        l.nama_laundry,
+        SUM(t.total_harga) AS pendapatan
+    FROM laundries l
+    LEFT JOIN users u ON u.owner_id = l.owner_id
+    LEFT JOIN transactions t ON t.user_id = u.id AND t.status_id = 4
+    WHERE l.owner_id = $ownerId
+    GROUP BY l.id
 ");
 ?>
+
 
 
 <!DOCTYPE html>
@@ -498,10 +488,9 @@ $dataStatus = mysqli_query($conn, "
         <!-- Navigation Links -->
         <div class="nav-links" id="navLinks">
             <a href="dashboard_owner.php">Dashboard</a>
-            <a href="pelanggan.php">Data Pelanggan</a>
-            <a href="transaksi.php">Transaksi</a>
+            <a href="data_cabang.php">Data Cabang</a>
             <a href="laporan_owner.php">Laporan</a>
-            <a href="pengaturan.php">Pengaturan</a>
+            <a href="logout.php">Keluar</a>
         </div>
     </div>
 
@@ -538,100 +527,61 @@ $dataStatus = mysqli_query($conn, "
 
         <!-- CARDS -->
         <div class="cards">
-            <div class="card">
-                <h3>Total Order</h3>
-                <p><?= $totalOrder['total']; ?></p>
-            </div>
-
-            <div class="card">
-                <h3>Laundry Proses</h3>
-                <p><?= $proses['total']; ?></p>
-            </div>
-
-            <div class="card">
-                <h3>Laundry Selesai</h3>
-                <p><?= $selesai['total']; ?></p>
-            </div>
-
-            <a href="transaksi.php" class="card-link">
-                <div class="card">
-                    <h3>Tambah Transaksi</h3>
-                    <p style="font-size:24px; color:#3498db;">+ Order</p>
-                </div>
-            </a>
-
-            <a href="pelanggan_tambah.php" class="card-link">
-                <div class="card">
-                    <h3>Tambah Pelanggan</h3>
-                    <p style="font-size:24px; color:#3498db;">+ Pelanggan</p>
-                </div>
-            </a>
-
+            <div class="cards">
+        <div class="card">
+            <h3>Total Cabang</h3>
+            <p><?= $totalCabang['total'] ?></p>
         </div>
 
-        <!-- STATUS LAUNDRY -->
-        <div class="status-section" id="status">
-            <h2>Status Laundry</h2>
+        <div class="card">
+            <h3>Total Admin</h3>
+            <p><?= $totalAdmin['total'] ?></p>
+        </div>
 
-            <div class="status-card">
-                <table>
-                    <tr>
-                        <th>ID</th>
-                        <th>Pelanggan</th>
-                        <th>Paket</th>
-                        <th>Status Saat Ini</th>
-                        <th>Aksi</th>
-                    </tr>
+        <div class="card">
+            <h3>Total Transaksi</h3>
+            <p><?= $totalTransaksi['total'] ?></p>
+        </div>
 
-                    <?php while ($row = mysqli_fetch_assoc($dataStatus)) {
+        <div class="card">
+            <h3>Total Pendapatan</h3>
+            <p>Rp <?= number_format($totalPendapatan['total'] ?? 0) ?></p>
+        </div>
 
-                        $alur = mysqli_query($conn, "
-                        SELECT psf.status_id, s.nama_status
-                        FROM package_status_flow psf
-                        JOIN laundry_status s ON psf.status_id = s.id
-                        WHERE psf.package_id = '{$row['package_id']}'
-                        ORDER BY psf.urutan
-                    ");
 
-                        $list = [];
-                        while ($a = mysqli_fetch_assoc($alur)) {
-                            $list[] = $a;
-                        }
+        <div class="status-card">
+            <h3>Pendapatan per Cabang</h3>
+            <canvas id="grafikCabang"></canvas>
+        </div>
 
-                        $next = null;
-                        for ($i = 0; $i < count($list); $i++) {
-                            if ($list[$i]['status_id'] == $row['status_id']) {
-                                $next = $list[$i + 1] ?? null;
-                                break;
-                            }
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+        const ctx = document.getElementById('grafikCabang');
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [
+                    <?php while ($g = mysqli_fetch_assoc($qGrafik)) {
+                        echo "'" . $g['nama_laundry'] . "',";
+                    } ?>
+                ],
+                datasets: [{
+                    label: 'Pendapatan',
+                    data: [
+                        <?php
+                        mysqli_data_seek($qGrafik, 0);
+                        while ($g = mysqli_fetch_assoc($qGrafik)) {
+                            echo ($g['pendapatan'] ?? 0) . ",";
                         }
                         ?>
-                        <tr>
-                            <td><?= $row['transaksi_id'] ?></td>
-                            <td><?= $row['pelanggan'] ?></td>
-                            <td><?= $row['nama_paket'] ?></td>
-                            <td><?= $row['nama_status'] ?></td>
-                            <td>
-                                <?php if ($next): ?>
-                                    <form method="post">
-                                        <input type="hidden" name="transaksi_id" value="<?= $row['transaksi_id'] ?>">
-                                        <button type="submit" name="status_id" value="<?= $next['status_id'] ?>"
-                                            class="status-btn" onclick="return konfirmasi('<?= $next['nama_status'] ?>')">
-                                            <?= $next['nama_status'] ?>
-                                        </button>
-                                    </form>
-                                <?php else: ?>
-                                    <strong>Selesai</strong>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                    <?php } ?>
-                </table>
-            </div>
-        </div>
-
+                    ],
+                    borderWidth: 1
+                }]
+            }
+        });
+        </script>
     </div>
-
 </body>
 
 </html>
