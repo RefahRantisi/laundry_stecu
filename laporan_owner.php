@@ -1,6 +1,6 @@
 <?php
 
-require 'auth.php';
+require 'auth_owner.php';
 
 include 'koneksi.php';
 
@@ -13,30 +13,39 @@ if (!empty($_GET['from']) && !empty($_GET['to'])) {
 }
 
 /* DATA LAPORAN */
+$ownerId = (int) $_SESSION['user_id'];
+
 $query = mysqli_query($conn, "
-SELECT 
-    c.nama AS nama_pelanggan,
-    t.id AS id_transaksi,
-    p.nama_paket,
-    t.total_harga,
-    t.tanggal
-FROM transactions t
-JOIN customers c ON t.customer_id = c.id
-JOIN laundry_packages p ON t.package_id = p.id
-JOIN laundry_status s ON t.status_id = s.id
-WHERE s.is_fixed = 2 $where
-ORDER BY t.tanggal DESC
+    SELECT
+        l.nama_laundry      AS nama_cabang,
+        u.username          AS nama_admin,
+        p.nama_paket,
+        t.total_harga,
+        t.tanggal
+    FROM transactions t
+    JOIN users u ON t.user_id = u.id
+    JOIN laundries l ON u.owner_id = l.owner_id
+    JOIN laundry_packages p ON t.package_id = p.id
+    JOIN laundry_status s ON t.status_id = s.id
+    WHERE 
+        u.owner_id = $ownerId
+        AND s.is_fixed = 2
+        $where
+    ORDER BY t.tanggal DESC
 ");
 
+
 /* TOTAL PENDAPATAN */
-$total = mysqli_fetch_assoc(
-    mysqli_query($conn, "
-        SELECT SUM(t.total_harga) AS total_pendapatan
-        FROM transactions t
-        JOIN laundry_status s ON t.status_id = s.id
-        WHERE s.is_fixed = 2 $where
-    ")
-);
+$total = mysqli_fetch_assoc(mysqli_query($conn, "
+    SELECT COALESCE(SUM(t.total_harga),0) AS total_pendapatan
+    FROM transactions t
+    JOIN users u ON t.user_id = u.id
+    JOIN laundry_status s ON t.status_id = s.id
+    WHERE 
+        u.owner_id = $ownerId
+        AND s.is_fixed = 2
+        $where
+"));
 
 ?>
 
@@ -435,10 +444,9 @@ $total = mysqli_fetch_assoc(
         <!-- Navigation Links -->
         <div class="nav-links" id="navLinks">
             <a href="dashboard_owner.php">Dashboard</a>
-            <a href="pelanggan.php">Data Pelanggan</a>
-            <a href="transaksi.php">Transaksi</a>
+            <a href="data_cabang.php">Data Cabang</a>
             <a href="laporan_owner.php">Laporan</a>
-            <a href="pengaturan.php">Pengaturan</a>
+            <a href="logout.php">Keluar</a>
         </div>
     </div>
 
@@ -460,8 +468,8 @@ $total = mysqli_fetch_assoc(
         <div class="table-wrapper">
             <table>
                 <tr>
-                    <th>Nama Pelanggan</th>
-                    <th>ID Transaksi</th>
+                    <th>Cabang</th>
+                    <th>Admin</th>
                     <th>Paket Laundry</th>
                     <th>Total Harga</th>
                     <th>Tanggal</th>
@@ -470,21 +478,11 @@ $total = mysqli_fetch_assoc(
                 <?php if (mysqli_num_rows($query) > 0): ?>
                     <?php while ($row = mysqli_fetch_assoc($query)): ?>
                         <tr>
-                            <td>
-                                <?= htmlspecialchars($row['nama_pelanggan']) ?>
-                            </td>
-                            <td>
-                                <?= $row['id_transaksi'] ?>
-                            </td>
-                            <td>
-                                <?= htmlspecialchars($row['nama_paket']) ?>
-                            </td>
-                            <td>Rp
-                                <?= number_format($row['total_harga'], 0, ',', '.') ?>
-                            </td>
-                            <td>
-                                <?= date('d-m-Y', strtotime($row['tanggal'])) ?>
-                            </td>
+                            <td><?= htmlspecialchars($row['nama_cabang']) ?></td>
+                            <td><?= htmlspecialchars($row['nama_admin']) ?></td>
+                            <td><?= htmlspecialchars($row['nama_paket']) ?></td>
+                            <td>Rp <?= number_format($row['total_harga'], 0, ',', '.') ?></td>
+                            <td><?= date('d-m-Y', strtotime($row['tanggal'])) ?></td>
                         </tr>
                     <?php endwhile; ?>
                 <?php else: ?>
