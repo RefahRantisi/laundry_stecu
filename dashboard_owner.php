@@ -2,55 +2,79 @@
 require 'auth_owner.php'; // 🔐 KHUSUS OWNER
 include 'koneksi.php';
 
-$ownerId = (int) $_SESSION['user_id'];
+$ownerId = (int) ($_SESSION['user_id'] ?? 0);
+
+/* ================== VALIDASI OWNER ================== */
+if ($ownerId <= 0) {
+    header("Location: login_owner.php");
+    exit;
+}
 
 /* ================== RINGKASAN ================== */
 
-// Total Cabang
 $totalCabang = mysqli_fetch_assoc(mysqli_query($conn, "
     SELECT COUNT(*) AS total 
     FROM laundries 
     WHERE owner_id = $ownerId
-"));
+"))['total'] ?? 0;
 
-// Total Admin
 $totalAdmin = mysqli_fetch_assoc(mysqli_query($conn, "
     SELECT COUNT(*) AS total 
     FROM users 
     WHERE role = 'admin' 
     AND owner_id = $ownerId
-"));
+"))['total'] ?? 0;
 
-// Total Transaksi (semua cabang owner)
 $totalTransaksi = mysqli_fetch_assoc(mysqli_query($conn, "
     SELECT COUNT(t.id) AS total
     FROM transactions t
     JOIN users u ON t.user_id = u.id
     WHERE u.owner_id = $ownerId
-"));
+"))['total'] ?? 0;
 
-// Total Pendapatan (status selesai)
 $totalPendapatan = mysqli_fetch_assoc(mysqli_query($conn, "
-    SELECT SUM(t.total_harga) AS total
+    SELECT COALESCE(SUM(t.total_harga),0) AS total
     FROM transactions t
     JOIN users u ON t.user_id = u.id
     WHERE u.owner_id = $ownerId 
     AND t.status_id = 4
+"))['total'] ?? 0;
+
+// Total Pelanggan (semua cabang owner)
+$totalPelanggan = mysqli_fetch_assoc(mysqli_query($conn, "
+    SELECT COUNT(DISTINCT c.id) AS total
+    FROM customers c
+    JOIN transactions t ON c.id = t.customer_id
+    JOIN users u ON t.user_id = u.id
+    WHERE u.owner_id = $ownerId
 "));
 
-/* ================== GRAFIK PENDAPATAN ================== */
+
+
+/* ================== GRAFIK PENDAPATAN PER CABANG ================== */
 $qGrafik = mysqli_query($conn, "
     SELECT 
         l.nama_laundry,
-        COALESCE(SUM(t.total_harga),0) AS pendapatan
+        COALESCE(SUM(t.total_harga), 0) AS pendapatan
     FROM laundries l
-    LEFT JOIN users u ON u.owner_id = l.owner_id
+    LEFT JOIN users u 
+        ON u.cabang_id = l.id
+        AND u.role = 'admin'
     LEFT JOIN transactions t 
-        ON t.user_id = u.id 
+        ON t.user_id = u.id
         AND t.status_id = 4
     WHERE l.owner_id = $ownerId
     GROUP BY l.id
 ");
+
+
+$labels = [];
+$data = [];
+
+while ($g = mysqli_fetch_assoc($qGrafik)) {
+    $labels[] = $g['nama_laundry'];
+    $data[] = (int) $g['pendapatan'];
+}
 ?>
 
 
@@ -521,26 +545,33 @@ $qGrafik = mysqli_query($conn, "
 
         <!-- CARDS -->
         <div class="cards">
-            <div class="cards">
-        <div class="card">
-            <h3>Total Cabang</h3>
-            <p><?= $totalCabang['total'] ?></p>
+
+            <div class="card">
+                <h3>Total Cabang</h3>
+                <p><?= $totalCabang ?></p>
+            </div>
+
+            <div class="card">
+                <h3>Total Admin</h3>
+                <p><?= $totalAdmin ?></p>
+            </div>
+            <div class="card">
+                <h3>Total Pelanggan</h3>
+                <p><?= $totalPelanggan['total'] ?>
+                </p>
+            </div>
+            <div class="card">
+                <h3>Total Transaksi</h3>
+                <p><?= $totalTransaksi ?></p>
+            </div>
+
+            <div class="card">
+                <h3>Total Pendapatan</h3>
+                <p>Rp <?= number_format($totalPendapatan ?? 0, 0, ',', '.') ?></p>
+            </div>
+
         </div>
 
-        <div class="card">
-            <h3>Total Admin</h3>
-            <p><?= $totalAdmin['total'] ?></p>
-        </div>
-
-        <div class="card">
-            <h3>Total Transaksi</h3>
-            <p><?= $totalTransaksi['total'] ?></p>
-        </div>
-
-        <div class="card">
-            <h3>Total Pendapatan</h3>
-            <p>Rp <?= number_format($totalPendapatan['total'] ?? 0) ?></p>
-        </div>
 
 
         <div class="status-card">
@@ -550,31 +581,21 @@ $qGrafik = mysqli_query($conn, "
 
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script>
-        const ctx = document.getElementById('grafikCabang');
+            const ctx = document.getElementById('grafikCabang');
 
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: [
-                    <?php while ($g = mysqli_fetch_assoc($qGrafik)) {
-                        echo "'" . $g['nama_laundry'] . "',";
-                    } ?>
-                ],
-                datasets: [{
-                    label: 'Pendapatan',
-                    data: [
-                        <?php
-                        mysqli_data_seek($qGrafik, 0);
-                        while ($g = mysqli_fetch_assoc($qGrafik)) {
-                            echo ($g['pendapatan'] ?? 0) . ",";
-                        }
-                        ?>
-                    ],
-                    borderWidth: 1
-                }]
-            }
-        });
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: <?= json_encode($labels) ?>,
+                    datasets: [{
+                        label: 'Pendapatan (Rp)',
+                        data: <?= json_encode($data) ?>,
+                        borderWidth: 1
+                    }]
+                }
+            });
         </script>
+
     </div>
 </body>
 
