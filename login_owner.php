@@ -232,7 +232,7 @@ ob_end_flush();
 <body>
     <div class="modal-overlay">
         <div class="modal-container">
-            <button class="close-btn" onclick="window.location.href='signup.php'">&times;</button>
+            <button class="close-btn" onclick="window.location.href='index.php'">&times;</button>
             
             <div class="modal-header">
                 <h2>Masuk Sebagai Owner</h2>
@@ -300,7 +300,7 @@ ob_end_flush();
             </form>
 
             <div class="modal-footer">
-                <p class="divider">Belum punya akun? <a href="signup.php">Daftar di sini</a></p>
+                <p class="divider">Belum punya akun? <a href="signup_owner.php">Daftar di sini</a></p>
             </div>
         </div>
     </div>

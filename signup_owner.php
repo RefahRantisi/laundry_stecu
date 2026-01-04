@@ -314,7 +314,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="modal-overlay">
         <div class="modal-container">
-            <button class="close-btn" onclick="window.location.href='login.php'">&times;</button>
+            <button class="close-btn" onclick="window.location.href='index.php'">&times;</button>
 
             <div class="modal-header">
                 <h2>Daftar Akun Baru</h2>
@@ -416,7 +416,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
             <div class="modal-footer">
-                <p class="divider">Sudah punya akun? <a href="login.php">Masuk di sini</a></p>
+                <p class="divider">Sudah punya akun? <a href="login_owner.php">Masuk di sini</a></p>
             </div>
         </div>
     </div>
