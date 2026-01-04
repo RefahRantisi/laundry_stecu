@@ -24,77 +24,47 @@ if (isset($_POST['nama'])) {
     <title>Tambah Cabang</title>
 
     <style>
-        /* ===== RESET ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, Helvetica, sans-serif;
-        }
-
         body {
-            background: #f4f6f9;
-            color: #333;
+            font-family: Arial;
+            background: #f5f5f5;
         }
 
-        /* ===== NAVBAR ===== */
-        .navbar {
-            background: #2c3e50;
-            padding: 15px;
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-        }
-
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-            padding: 10px 18px;
+        .container {
+            width: 600px;
+            margin: 30px auto;
+            background: #fff;
+            padding: 20px;
             border-radius: 6px;
         }
 
-        .navbar a:hover {
+        /* ===== BUTTON BACK ===== */
+        .btn-back {
+            display: inline-block;
+            margin-bottom: 15px;
+            padding: 8px 14px;
+            background: #2c3e50;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .btn-back:hover {
             background: #1abc9c;
         }
 
-        /* ===== CONTAINER ===== */
-        .container {
-            width: 100%;
-            max-width: 600px;
-            margin: 40px auto;
-            padding: 20px;
-        }
-
-        h2 {
-            margin-bottom: 20px;
-        }
-
-        /* ===== CARD FORM ===== */
-        .form-card {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-
-        .form-group {
-            margin-bottom: 18px;
-        }
-
         label {
-            display: block;
-            margin-bottom: 6px;
             font-weight: bold;
-            font-size: 14px;
+            display: block;
+            margin-bottom: 5px;
         }
 
         input, textarea {
+            padding: 8px;
             width: 100%;
-            padding: 10px 12px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            font-size: 14px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
 
         textarea {
@@ -102,86 +72,45 @@ if (isset($_POST['nama'])) {
             min-height: 80px;
         }
 
-        input:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #1abc9c;
-        }
-
-        /* ===== BUTTON ===== */
-        .btn {
-            padding: 10px 18px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 14px;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn-primary {
-            background: #1abc9c;
+        form button[type="submit"] {
+            padding: 10px 20px;
+            background: #2ecc71;
             color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
         }
 
-        .btn-primary:hover {
-            background: #16a085;
+        form button[type="submit"]:hover {
+            background: #27ae60;
         }
 
-        .btn-secondary {
-            background: #bdc3c7;
-            color: #2c3e50;
-            margin-left: 10px;
-        }
-
-        .btn-secondary:hover {
-            background: #95a5a6;
-        }
-
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 480px) {
-            .container {
-                margin: 20px auto;
-                padding: 15px;
-            }
-
-            .form-card {
-                padding: 20px;
-            }
-        }
     </style>
 </head>
 
 <body>
 
-<!-- NAVBAR -->
-<div class="navbar">
-    <a href="dashboard_owner.php">Dashboard</a>
-    <a href="cabang.php">Data Cabang</a>
-    <a href="laporan_owner.php">Laporan</a>
-    <a href="logout.php">Keluar</a>
-</div>
-
 <div class="container">
+
+    <!-- BACK -->
+    <a href="cabang.php" class="btn-back">← Kembali ke Data Cabang</a>
+
     <h2>Tambah Cabang</h2>
 
-    <div class="form-card">
-        <form method="post">
-            <div class="form-group">
-                <label>Nama Cabang</label>
-                <input type="text" name="nama" required>
-            </div>
+    <form method="post">
+        <label>Nama Cabang</label>
+        <input type="text" name="nama" required placeholder="Contoh: Laundry STECU Cabang 2">
+        <br><br>
 
-            <div class="form-group">
-                <label>Alamat</label>
-                <textarea name="alamat"></textarea>
-            </div>
+        <label>Alamat</label>
+        <textarea name="alamat" placeholder="Alamat lengkap cabang"></textarea>
+        <br><br>
 
-            <button type="submit" class="btn btn-primary">Simpan</button>
-            <a href="cabang.php" class="btn btn-secondary">Batal</a>
-        </form>
-    </div>
+        <button type="submit">Simpan Cabang</button>
+    </form>
+
 </div>
 
 </body>

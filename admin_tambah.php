@@ -3,18 +3,50 @@ require 'auth_owner.php';
 include 'koneksi.php';
 
 $cabang_id = (int) $_GET['cabang_id'];
+$error = '';
 
-if (isset($_POST['username'])) {
-    $username = mysqli_real_escape_string($conn, $_POST['username']);
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = trim($_POST['username']);
+    $password = $_POST['password'];
+    $confirm  = $_POST['confirm_password'];
 
-    mysqli_query($conn, "
-        INSERT INTO users (username, password, role, owner_id, cabang_id)
-        VALUES ('$username', '$password', 'admin', {$_SESSION['owner_id']}, $cabang_id)
-    ");
+    if (empty($username) || empty($password) || empty($confirm)) {
+        $error = "Semua field wajib diisi";
+    } elseif (strlen($username) < 4) {
+        $error = "Username minimal 4 karakter";
+    } elseif (strlen($password) < 6) {
+        $error = "Password minimal 6 karakter";
+    } elseif ($password !== $confirm) {
+        $error = "Password dan konfirmasi tidak cocok";
+    } else {
+        $stmt = $conn->prepare("SELECT id FROM users WHERE username=?");
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $stmt->store_result();
 
-    header("Location: cabang_detail.php?id=$cabang_id");
-    exit;
+        if ($stmt->num_rows > 0) {
+            $error = "Username sudah digunakan";
+        } else {
+            $hash = password_hash($password, PASSWORD_DEFAULT);
+
+            $stmt = $conn->prepare("
+                INSERT INTO users 
+                (username, password, role, owner_id, cabang_id, is_active)
+                VALUES (?, ?, 'admin', ?, ?, 1)
+            ");
+            $stmt->bind_param(
+                "ssii",
+                $username,
+                $hash,
+                $_SESSION['owner_id'],
+                $cabang_id
+            );
+            $stmt->execute();
+
+            header("Location: cabang_detail.php?id=$cabang_id");
+            exit;
+        }
+    }
 }
 ?>
 
@@ -22,165 +54,90 @@ if (isset($_POST['username'])) {
 <html>
 <head>
     <title>Tambah Admin</title>
-
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, Helvetica, sans-serif;
+        *{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
+        body{
+            background:#f4f4f4;
+            min-height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
         }
-
-        body {
-            background: #f4f6f9;
-            color: #333;
+        .modal{
+            background:#fff;
+            width:100%;
+            max-width:450px;
+            padding:30px;
+            border-radius:12px;
+            box-shadow:0 10px 40px rgba(0,0,0,.2);
         }
-
-        /* ===== NAVBAR ===== */
-        .navbar {
-            background: #2c3e50;
-            padding: 15px;
-            display: flex;
-            justify-content: center;
-            gap: 12px;
+        h2{text-align:center;margin-bottom:5px}
+        p{text-align:center;color:#777;margin-bottom:20px}
+        .alert{
+            background:#fee;
+            color:#c33;
+            padding:10px;
+            border-radius:6px;
+            margin-bottom:15px;
+            font-size:14px;
         }
-
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-            padding: 10px 18px;
-            border-radius: 6px;
+        label{font-weight:bold;font-size:14px}
+        input{
+            width:100%;
+            padding:12px;
+            margin:8px 0 15px;
+            border-radius:8px;
+            border:2px solid #ddd;
         }
-
-        .navbar a:hover {
-            background: #1abc9c;
+        input:focus{border-color:#2c3e50;outline:none}
+        button{
+            width:100%;
+            padding:14px;
+            background:#2c3e50;
+            color:white;
+            border:none;
+            border-radius:8px;
+            font-weight:bold;
+            cursor:pointer;
         }
-
-        /* ===== CONTAINER ===== */
-        .container {
-            width: 100%;
-            max-width: 500px;
-            margin: 50px auto;
-            padding: 20px;
-        }
-
-        h2 {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        /* ===== FORM CARD ===== */
-        .card {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-
-        label {
-            font-weight: bold;
-            font-size: 14px;
-            margin-bottom: 5px;
-            display: block;
-        }
-
-        input {
-            width: 100%;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-
-        input:focus {
-            border-color: #1abc9c;
-            outline: none;
-        }
-
-        /* ===== BUTTON SIMPAN ===== */
-        .btn {
-            width: 100%;
-            padding: 10px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 14px;
-            background: #1abc9c;
-            color: white;
-        }
-
-        .btn:hover {
-            background: #16a085;
-        }
-
-        /* ===== BUTTON BACK (ABU, NO HOVER HIJAU) ===== */
-        .btn-back {
-            display: inline-block;
-            width: 100%;
-            padding: 10px;
-            margin-top: 15px;
-            background: #bdc3c7;
-            color: #2c3e50;
-            text-align: center;
-            text-decoration: none; /* HILANG GARIS BAWAH */
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        .btn-back:hover {
-            background: #bdc3c7;
-            color: #2c3e50;
-        }
-
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 480px) {
-            .container {
-                margin: 30px auto;
-                padding: 15px;
-            }
-
-            .card {
-                padding: 20px;
-            }
+        button:hover{background:#34495e}
+        .back{
+            display:block;
+            text-align:center;
+            margin-top:15px;
+            text-decoration:none;
+            color:#555;
+            font-size:14px;
         }
     </style>
 </head>
 
 <body>
 
-<!-- NAVBAR -->
-<div class="navbar">
-    <a href="dashboard_owner.php">Dashboard</a>
-    <a href="cabang.php">Data Cabang</a>
-    <a href="laporan_owner.php">Laporan</a>
-    <a href="logout.php">Keluar</a>
-</div>
-
-<div class="container">
-
+<div class="modal">
     <h2>Tambah Admin</h2>
+    <p>Admin khusus untuk cabang ini</p>
 
-    <div class="card">
-        <form method="post">
-            <label>Username</label>
-            <input type="text" name="username" required>
+    <?php if ($error): ?>
+        <div class="alert"><?= $error ?></div>
+    <?php endif; ?>
 
-            <label>Password</label>
-            <input type="password" name="password" required>
+    <form method="POST">
+        <label>Username</label>
+        <input type="text" name="username" required>
 
-            <button class="btn">Simpan</button>
-        </form>
+        <label>Password</label>
+        <input type="password" name="password" required>
 
-        <a href="cabang_detail.php?id=<?= $cabang_id ?>" class="btn-back">
-            ← Kembali ke Detail Cabang
-        </a>
-    </div>
+        <label>Konfirmasi Password</label>
+        <input type="password" name="confirm_password" required>
 
+        <button>Simpan Admin</button>
+    </form>
+
+    <a href="cabang_detail.php?id=<?= $cabang_id ?>" class="back">
+        ← Kembali ke Detail Cabang
+    </a>
 </div>
 
 </body>
