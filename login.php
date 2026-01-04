@@ -249,7 +249,7 @@ ob_end_flush();
 <body>
     <div class="modal-overlay">
         <div class="modal-container">
-            <button class="close-btn" onclick="window.location.href='signup.php'">&times;</button>
+            <button class="close-btn" onclick="window.location.href='index.php'">&times;</button>
 
             <div class="modal-header">
                 <h2>Masuk Sebagai Admin</h2>
