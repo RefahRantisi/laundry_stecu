@@ -4,6 +4,8 @@ require 'auth.php';
 
 include 'koneksi.php';
 
+$user_id = $_SESSION['user_id']; // 🔥 ID user login
+
 /* FILTER TANGGAL */
 $where = "";
 if (!empty($_GET['from']) && !empty($_GET['to'])) {
@@ -24,7 +26,9 @@ FROM transactions t
 JOIN customers c ON t.customer_id = c.id
 JOIN laundry_packages p ON t.package_id = p.id
 JOIN laundry_status s ON t.status_id = s.id
-WHERE s.is_fixed = 2 $where
+WHERE s.is_fixed = 2 
+AND t.user_id = $user_id
+$where
 ORDER BY t.tanggal DESC
 ");
 
@@ -34,8 +38,15 @@ $total = mysqli_fetch_assoc(
         SELECT SUM(t.total_harga) AS total_pendapatan
         FROM transactions t
         JOIN laundry_status s ON t.status_id = s.id
-        WHERE s.is_fixed = 2 $where
+        WHERE s.is_fixed = 2 
+        AND t.user_id = $user_id
+        $where
     ")
+);
+
+/* AMBIL INFO USER YANG LOGIN */
+$user_info = mysqli_fetch_assoc(
+    mysqli_query($conn, "SELECT username FROM users WHERE id = $user_id")
 );
 
 ?>
