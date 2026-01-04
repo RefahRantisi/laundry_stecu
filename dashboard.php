@@ -1,8 +1,8 @@
 <?php
-require 'auth.php';
+require 'auth.php'; // 🔐 cek login + role admin
 include 'koneksi.php';
 
-$user_id = $_SESSION['user_id']; // 🔥 ID user login
+$user_id = (int) $_SESSION['user_id']; // ID admin login
 
 /* ================= UPDATE STATUS ================= */
 if (isset($_POST['transaksi_id'], $_POST['status_id'])) {

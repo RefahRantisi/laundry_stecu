@@ -1,59 +1,53 @@
 <?php
-require 'auth.php';
+require 'auth_owner.php'; // 🔐 KHUSUS OWNER
 include 'koneksi.php';
 
-/* ================== AUTH OWNER ================== */
-if ($_SESSION['role'] !== 'owner') {
-    header("Location: login.php");
-    exit;
-}
-
-$ownerId = $_SESSION['user_id'];
+$ownerId = (int) $_SESSION['user_id'];
 
 /* ================== RINGKASAN ================== */
 
 // Total Cabang
-$qCabang = mysqli_query($conn, "
+$totalCabang = mysqli_fetch_assoc(mysqli_query($conn, "
     SELECT COUNT(*) AS total 
     FROM laundries 
     WHERE owner_id = $ownerId
-");
-$totalCabang = mysqli_fetch_assoc($qCabang);
+"));
 
 // Total Admin
-$qAdmin = mysqli_query($conn, "
+$totalAdmin = mysqli_fetch_assoc(mysqli_query($conn, "
     SELECT COUNT(*) AS total 
     FROM users 
-    WHERE role = 'admin' AND owner_id = $ownerId
-");
-$totalAdmin = mysqli_fetch_assoc($qAdmin);
+    WHERE role = 'admin' 
+    AND owner_id = $ownerId
+"));
 
-// Total Transaksi (dari semua cabang owner)
-$qTransaksi = mysqli_query($conn, "
+// Total Transaksi (semua cabang owner)
+$totalTransaksi = mysqli_fetch_assoc(mysqli_query($conn, "
     SELECT COUNT(t.id) AS total
     FROM transactions t
     JOIN users u ON t.user_id = u.id
     WHERE u.owner_id = $ownerId
-");
-$totalTransaksi = mysqli_fetch_assoc($qTransaksi);
+"));
 
 // Total Pendapatan (status selesai)
-$qPendapatan = mysqli_query($conn, "
+$totalPendapatan = mysqli_fetch_assoc(mysqli_query($conn, "
     SELECT SUM(t.total_harga) AS total
     FROM transactions t
     JOIN users u ON t.user_id = u.id
-    WHERE u.owner_id = $ownerId AND t.status_id = 4
-");
-$totalPendapatan = mysqli_fetch_assoc($qPendapatan);
+    WHERE u.owner_id = $ownerId 
+    AND t.status_id = 4
+"));
 
-/* ================== GRAFIK PENDAPATAN PER CABANG ================== */
+/* ================== GRAFIK PENDAPATAN ================== */
 $qGrafik = mysqli_query($conn, "
     SELECT 
         l.nama_laundry,
-        SUM(t.total_harga) AS pendapatan
+        COALESCE(SUM(t.total_harga),0) AS pendapatan
     FROM laundries l
     LEFT JOIN users u ON u.owner_id = l.owner_id
-    LEFT JOIN transactions t ON t.user_id = u.id AND t.status_id = 4
+    LEFT JOIN transactions t 
+        ON t.user_id = u.id 
+        AND t.status_id = 4
     WHERE l.owner_id = $ownerId
     GROUP BY l.id
 ");

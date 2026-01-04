@@ -5,46 +5,59 @@ ini_set('display_errors', 1);
 ob_start();
 session_start();
 
-// Koneksi database
 include 'koneksi.php';
 
 $error = '';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
     $username = trim($_POST['username']);
     $password = $_POST['password'];
 
     if (empty($username) || empty($password)) {
         $error = "Username dan password harus diisi!";
     } else {
-        // Cari user berdasarkan username
-        $sql = "SELECT * FROM users WHERE username = '$username'";
-        $result = $conn->query($sql);
 
-        if ($result->num_rows > 0) {
+        // 🔒 Ambil hanya ADMIN
+        $stmt = $conn->prepare("
+            SELECT id, username, password, role, owner_id
+            FROM users
+            WHERE username = ? AND role = 'admin'
+            LIMIT 1
+        ");
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows === 1) {
             $user = $result->fetch_assoc();
 
-            // Verifikasi password hash
             if (password_verify($password, $user['password'])) {
-                // Login Berhasil - Set Session
+
+                // ✅ SET SESSION LENGKAP
                 $_SESSION['login'] = true;
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
+                $_SESSION['role'] = $user['role'];       // 🔥 WAJIB
+                $_SESSION['owner_id'] = $user['owner_id'];
 
-                // Arahkan ke dashboard
                 header("Location: dashboard.php");
                 exit;
+
             } else {
                 $error = "Password salah!";
             }
         } else {
-            $error = "Username tidak ditemukan!";
+            $error = "Akun admin tidak ditemukan!";
         }
+
+        $stmt->close();
     }
 }
 
 ob_end_flush();
 ?>
+
 <!DOCTYPE html>
 <html>
 
