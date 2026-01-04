@@ -34,5 +34,5 @@ if (ini_get("session.use_cookies")) {
 | REDIRECT KE LOGIN
 |--------------------------------------------------------------------------
 */
-header("Location: login.php?logout=success");
+header("Location: index.php?logout=success");
 exit;
