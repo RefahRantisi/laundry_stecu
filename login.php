@@ -295,7 +295,7 @@ ob_end_flush();
                         </svg>
                         Username
                     </label>
-                    <input type="text" name="username" placeholder="Contoh: admin123" required>
+                    <input type="text" name="username" placeholder="Username" required>
                 </div>
 
                 <div class="form-group">

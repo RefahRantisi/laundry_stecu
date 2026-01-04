@@ -279,7 +279,7 @@ ob_end_flush();
                     <input 
                         type="text" 
                         name="username" 
-                        placeholder="Contoh: admin123" 
+                        placeholder="Username" 
                         required
                     >
                 </div>
