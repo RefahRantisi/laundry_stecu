@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $_SESSION['username'] = $user['username'];
                 
                 // Arahkan ke dashboard
-                header("Location: dashboard.php");
+                header("Location: dashboard_owner.php");
                 exit;
             } else {
                 $error = "Password salah!";
