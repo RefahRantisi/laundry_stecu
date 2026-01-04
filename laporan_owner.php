@@ -4,13 +4,32 @@ require 'auth_owner.php';
 
 include 'koneksi.php';
 
-/* FILTER TANGGAL */
+$ownerId = (int) $_SESSION['user_id'];
+
+/* LIST CABANG OWNER */
+$qCabangList = mysqli_query($conn, "
+    SELECT id, nama_laundry
+    FROM laundries
+    WHERE owner_id = $ownerId
+");
+
+
+/* FILTER */
 $where = "";
+
+/* FILTER TANGGAL */
 if (!empty($_GET['from']) && !empty($_GET['to'])) {
     $from = mysqli_real_escape_string($conn, $_GET['from']);
     $to = mysqli_real_escape_string($conn, $_GET['to']);
-    $where = "AND DATE(t.tanggal) BETWEEN '$from' AND '$to'";
+    $where .= " AND DATE(t.tanggal) BETWEEN '$from' AND '$to'";
 }
+
+/* FILTER CABANG */
+if (!empty($_GET['cabang_id'])) {
+    $cabangId = (int) $_GET['cabang_id'];
+    $where .= " AND l.id = $cabangId";
+}
+
 
 /* DATA LAPORAN */
 $ownerId = (int) $_SESSION['user_id'];
@@ -24,7 +43,7 @@ $query = mysqli_query($conn, "
         t.tanggal
     FROM transactions t
     JOIN users u ON t.user_id = u.id
-    JOIN laundries l ON u.owner_id = l.owner_id
+    JOIN laundries l ON u.cabang_id = l.id
     JOIN laundry_packages p ON t.package_id = p.id
     JOIN laundry_status s ON t.status_id = s.id
     WHERE 
@@ -40,6 +59,7 @@ $total = mysqli_fetch_assoc(mysqli_query($conn, "
     SELECT COALESCE(SUM(t.total_harga),0) AS total_pendapatan
     FROM transactions t
     JOIN users u ON t.user_id = u.id
+    JOIN laundries l ON u.cabang_id = l.id
     JOIN laundry_status s ON t.status_id = s.id
     WHERE 
         u.owner_id = $ownerId
@@ -455,14 +475,27 @@ $total = mysqli_fetch_assoc(mysqli_query($conn, "
 
         <!-- FILTER -->
         <div class="filter-box">
-            <form method="GET">
-                <label>Dari:</label>
-                <input type="date" name="from" value="<?= $_GET['from'] ?? '' ?>">
+    <form method="GET">
+        <label>Dari:</label>
+        <input type="date" name="from" value="<?= $_GET['from'] ?? '' ?>">
+        
                 <label>Sampai:</label>
                 <input type="date" name="to" value="<?= $_GET['to'] ?? '' ?>">
+        
+                <label>Cabang:</label>
+                <select name="cabang_id">
+                    <option value="">Semua Cabang</option>
+                    <?php while ($c = mysqli_fetch_assoc($qCabangList)): ?>
+                        <option value="<?= $c['id'] ?>" <?= (($_GET['cabang_id'] ?? '') == $c['id']) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($c['nama_laundry']) ?>
+                        </option>
+                    <?php endwhile; ?>
+                </select>
+        
                 <button type="submit">Filter</button>
             </form>
         </div>
+
 
         <!-- TABLE -->
         <div class="table-wrapper">
