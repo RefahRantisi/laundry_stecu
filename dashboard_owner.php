@@ -66,10 +66,13 @@ $qGrafik = mysqli_query($conn, "
         AND u.role = 'admin'
     LEFT JOIN transactions t 
         ON t.user_id = u.id
-        AND t.status_id = 4
+    LEFT JOIN laundry_status s
+        ON t.status_id = s.id
+        AND s.is_fixed = 2
     WHERE l.owner_id = $ownerId
     GROUP BY l.id
 ");
+
 
 
 $labels = [];
@@ -80,14 +83,10 @@ while ($g = mysqli_fetch_assoc($qGrafik)) {
     $data[] = (int) $g['pendapatan'];
 }
 
-
 ?>
-
-
 
 <!DOCTYPE html>
 <html>
-
 <head>
     <title>Dashboard Laundry</title>
 
