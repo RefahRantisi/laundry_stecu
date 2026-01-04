@@ -60,7 +60,7 @@ if (isset($_SESSION['user_id'])) {
     <h2>Masuk sebagai</h2>
     <p>Pilih jenis akun untuk melanjutkan</p>
 
-    <a href="login_admin.php" class="admin">Admin Cabang</a>
+    <a href="login.php" class="admin">Admin Cabang</a>
     <a href="login_owner.php" class="owner">Owner</a>
 </div>
 
