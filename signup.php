@@ -6,7 +6,7 @@ session_start();
 
 // 🔒 Jika sudah login, tidak boleh signup lagi
 if (isset($_SESSION['login'])) {
-    header("Location: index.php");
+    header("Location: dashboard.php");
     exit;
 }
 

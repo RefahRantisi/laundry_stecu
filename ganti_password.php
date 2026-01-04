@@ -178,7 +178,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <!-- TOMBOL KEMBALI -->
         <div class="top-bar">
-            <a href="index.php" class="btn-back">← Kembali</a>
+            <a href="dashboard.php" class="btn-back">← Kembali</a>
         </div>
 
         <h2>Ganti Password</h2>

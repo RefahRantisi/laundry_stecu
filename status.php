@@ -16,7 +16,7 @@ if (isset($_POST['transaksi_id'], $_POST['status_id'])) {
         AND user_id = $user_id
     ");
 
-    header("Location: index.php");
+    header("Location: dashboard.php");
     exit;
 }
 

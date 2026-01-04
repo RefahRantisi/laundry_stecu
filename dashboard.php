@@ -16,7 +16,7 @@ if (isset($_POST['transaksi_id'], $_POST['status_id'])) {
         AND user_id = $user_id
     ");
 
-    header("Location: index.php");
+    header("Location: dashboard.php");
     exit;
 }
 
@@ -497,7 +497,7 @@ $dataStatus = mysqli_query($conn, "
 
         <!-- Navigation Links -->
         <div class="nav-links" id="navLinks">
-            <a href="index.php">Dashboard</a>
+            <a href="dashboard.php">Dashboard</a>
             <a href="pelanggan.php">Data Pelanggan</a>
             <a href="transaksi.php">Transaksi</a>
             <a href="laporan.php">Laporan</a>
