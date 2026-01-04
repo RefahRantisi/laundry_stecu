@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $conn->prepare("
             SELECT id, username, password, role, owner_id
             FROM users
-            WHERE username = ? AND role = 'admin'
+            WHERE username = ? AND role = 'admin' AND is_active = 1
             LIMIT 1
         ");
         $stmt->bind_param("s", $username);
