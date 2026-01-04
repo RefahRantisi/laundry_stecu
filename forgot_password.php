@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             if ($stmt->execute()) {
                 unset($_SESSION['reset_username']);
-                header("Location: login.php?reset=success");
+                header("Location: login_owner.php?reset=success");
                 exit;
             } else {
                 $error = "Gagal mereset password!";
@@ -327,7 +327,7 @@ if (isset($_SESSION['reset_username']) && empty($_POST)) {
 <body>
     <div class="modal-overlay">
         <div class="modal-container">
-            <button class="close-btn" onclick="window.location.href='login.php'">&times;</button>
+            <button class="close-btn" onclick="window.location.href='login_owner.php'">&times;</button>
             
             <div class="modal-header">
                 <svg fill="currentColor" viewBox="0 0 20 20">
@@ -376,7 +376,7 @@ if (isset($_SESSION['reset_username']) && empty($_POST)) {
                     </div>
 
                     <button type="submit" name="check_username" class="submit-btn">Lanjutkan</button>
-                    <button type="button" class="back-btn" onclick="window.location.href='login.php'">Kembali ke Login</button>
+                    <button type="button" class="back-btn" onclick="window.location.href='login_owner.php'">Kembali ke Login</button>
                 </form>
 
             <?php else: ?>
@@ -429,12 +429,12 @@ if (isset($_SESSION['reset_username']) && empty($_POST)) {
                     </div>
 
                     <button type="submit" name="reset_password" class="submit-btn">Reset Password</button>
-                    <button type="button" class="back-btn" onclick="window.location.href='login.php'">Batal</button>
+                    <button type="button" class="back-btn" onclick="window.location.href='login_owner.php'">Batal</button>
                 </form>
             <?php endif; ?>
 
             <div class="modal-footer">
-                <a href="login.php">← Kembali ke Login</a>
+                <a href="login_owner.php">← Kembali ke Login</a>
             </div>
         </div>
     </div>
