@@ -1,5 +1,5 @@
 <?php
-require 'auth.php';
+session_start();
 
 /*
 |--------------------------------------------------------------------------
@@ -34,5 +34,5 @@ if (ini_get("session.use_cookies")) {
 | REDIRECT KE LOGIN
 |--------------------------------------------------------------------------
 */
-header("Location: index.php?logout=success");
+header("Location: index.php?");
 exit;
