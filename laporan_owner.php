@@ -466,7 +466,7 @@ $total = mysqli_fetch_assoc(mysqli_query($conn, "
             <a href="dashboard_owner.php">Dashboard</a>
             <a href="data_cabang.php">Data Cabang</a>
             <a href="laporan_owner.php">Laporan</a>
-            <a href="logout.php">Keluar</a>
+            <a href="logout.php" onclick="return confirm('Yakin ingin keluar?')">Keluar</a>
         </div>
     </div>
 
