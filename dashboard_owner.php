@@ -2,7 +2,7 @@
 require 'auth_owner.php'; // 🔐 KHUSUS OWNER
 include 'koneksi.php';
 
-$ownerId = (int) ($_SESSION['user_id'] ?? 0);
+$ownerId = (int) ($_SESSION['owner_id'] ?? 0);
 
 /* ================== VALIDASI OWNER ================== */
 if ($ownerId <= 0) {
@@ -32,13 +32,17 @@ $totalTransaksi = mysqli_fetch_assoc(mysqli_query($conn, "
     WHERE u.owner_id = $ownerId
 "))['total'] ?? 0;
 
-$totalPendapatan = mysqli_fetch_assoc(mysqli_query($conn, "
-    SELECT COALESCE(SUM(t.total_harga),0) AS total
+$total = mysqli_fetch_assoc(mysqli_query($conn, "
+    SELECT COALESCE(SUM(t.total_harga),0) AS total_pendapatan
     FROM transactions t
     JOIN users u ON t.user_id = u.id
-    WHERE u.owner_id = $ownerId 
-    AND t.status_id = 4
-"))['total'] ?? 0;
+    JOIN laundries l ON u.cabang_id = l.id
+    JOIN laundry_status s ON t.status_id = s.id
+    WHERE 
+        u.owner_id = $ownerId
+        AND s.is_fixed = 2
+        
+"));
 
 // Total Pelanggan (semua cabang owner)
 $totalPelanggan = mysqli_fetch_assoc(mysqli_query($conn, "
@@ -75,6 +79,8 @@ while ($g = mysqli_fetch_assoc($qGrafik)) {
     $labels[] = $g['nama_laundry'];
     $data[] = (int) $g['pendapatan'];
 }
+
+
 ?>
 
 
@@ -567,7 +573,7 @@ while ($g = mysqli_fetch_assoc($qGrafik)) {
 
             <div class="card">
                 <h3>Total Pendapatan</h3>
-                <p>Rp <?= number_format($totalPendapatan ?? 0, 0, ',', '.') ?></p>
+                <p>Rp <?= number_format($total['total_pendapatan'] ?? 0, 0, ',', '.') ?></p>
             </div>
 
         </div>

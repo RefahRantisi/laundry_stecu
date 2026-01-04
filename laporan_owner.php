@@ -4,7 +4,7 @@ require 'auth_owner.php';
 
 include 'koneksi.php';
 
-$ownerId = (int) $_SESSION['user_id'];
+$ownerId = (int) $_SESSION['owner_id'];
 
 /* LIST CABANG OWNER */
 $qCabangList = mysqli_query($conn, "
@@ -32,7 +32,7 @@ if (!empty($_GET['cabang_id'])) {
 
 
 /* DATA LAPORAN */
-$ownerId = (int) $_SESSION['user_id'];
+$ownerId = (int) $_SESSION['owner_id'];
 
 $query = mysqli_query($conn, "
     SELECT
