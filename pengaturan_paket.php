@@ -1,27 +1,44 @@
 <?php
-
 require 'auth.php';
-include 'koneksi.php';
+require 'koneksi.php';
 
 /* =========================
-   TAMBAH / EDIT PAKET
+   INIT
+========================= */
+$edit = null;
+$satuan_edit = '';
+
+/* =========================
+   SIMPAN
 ========================= */
 if (isset($_POST['simpan'])) {
     $nama    = mysqli_real_escape_string($conn, $_POST['nama_paket']);
     $unit_id = (int) $_POST['unit_id'];
     $harga   = (float) $_POST['harga'];
 
+    // 🔐 VALIDASI unit_id harus milik cabang ini
+    $cekUnit = mysqli_query($conn, "
+        SELECT id FROM laundry_units
+        WHERE id='$unit_id' AND cabang_id='$cabang_id' AND is_active=1
+    ");
+    if (mysqli_num_rows($cekUnit) === 0) {
+        die('Kategori tidak valid');
+    }
+
     if (!empty($_POST['id'])) {
         $id = (int) $_POST['id'];
         mysqli_query($conn, "
-            UPDATE laundry_packages 
-            SET nama_paket='$nama', unit_id='$unit_id', harga='$harga'
-            WHERE id='$id'
+            UPDATE laundry_packages SET
+                nama_paket='$nama',
+                unit_id='$unit_id',
+                harga='$harga'
+            WHERE id='$id' AND cabang_id='$cabang_id'
         ");
     } else {
         mysqli_query($conn, "
-            INSERT INTO laundry_packages (nama_paket, unit_id, harga, is_active)
-            VALUES ('$nama', '$unit_id', '$harga', 1)
+            INSERT INTO laundry_packages
+            (nama_paket, unit_id, harga, is_active, cabang_id)
+            VALUES ('$nama','$unit_id','$harga',1,'$cabang_id')
         ");
     }
 
@@ -30,54 +47,56 @@ if (isset($_POST['simpan'])) {
 }
 
 /* =========================
-   NONAKTIFKAN PAKET (SOFT DELETE)
+   HAPUS
 ========================= */
 if (isset($_GET['hapus'])) {
     $id = (int) $_GET['hapus'];
-
     mysqli_query($conn, "
-        UPDATE laundry_packages 
-        SET is_active = 0 
-        WHERE id='$id'
+        UPDATE laundry_packages
+        SET is_active=0
+        WHERE id='$id' AND cabang_id='$cabang_id'
     ");
-
     header("Location: pengaturan_paket.php");
     exit;
 }
 
 /* =========================
-   DATA EDIT
+   EDIT
 ========================= */
-$edit = null;
 if (isset($_GET['edit'])) {
     $id = (int) $_GET['edit'];
     $q = mysqli_query($conn, "
-        SELECT * FROM laundry_packages 
-        WHERE id='$id' AND is_active=1
+        SELECT lp.*, lu.nama_satuan
+        FROM laundry_packages lp
+        LEFT JOIN laundry_units lu 
+            ON lp.unit_id = lu.id AND lu.cabang_id='$cabang_id'
+        WHERE lp.id='$id'
+          AND lp.cabang_id='$cabang_id'
+          AND lp.is_active=1
     ");
     $edit = mysqli_fetch_assoc($q);
+    $satuan_edit = $edit['nama_satuan'] ?? '';
 }
 
 /* =========================
-   DATA KATEGORI AKTIF (untuk dropdown)
+   KATEGORI
 ========================= */
 $kategori_list = mysqli_query($conn, "
-    SELECT * FROM laundry_units 
-    WHERE is_active = 1 
+    SELECT * FROM laundry_units
+    WHERE is_active=1 AND cabang_id='$cabang_id'
     ORDER BY kategori_barang ASC
 ");
 
 /* =========================
-   DATA LIST PAKET (HANYA AKTIF) + JOIN dengan laundry_units
+   LIST PAKET
 ========================= */
 $data = mysqli_query($conn, "
-    SELECT 
-        lp.*,
-        lu.kategori_barang,
-        lu.nama_satuan
+    SELECT lp.*, lu.kategori_barang, lu.nama_satuan
     FROM laundry_packages lp
-    LEFT JOIN laundry_units lu ON lp.unit_id = lu.id
-    WHERE lp.is_active = 1
+    LEFT JOIN laundry_units lu 
+        ON lp.unit_id = lu.id AND lu.cabang_id='$cabang_id'
+    WHERE lp.is_active=1
+      AND lp.cabang_id='$cabang_id'
     ORDER BY lp.id DESC
 ");
 ?>

@@ -4,22 +4,21 @@ include 'koneksi.php';
 
 $paket_id = $_GET['paket_id'] ?? null;
 
-/* =====================
-   TAMBAH STATUS KE PAKET
-===================== */
+/* TAMBAH */
 if (isset($_GET['tambah'])) {
-    $paket_id  = (int) $_GET['paket_id'];
-    $status_id = (int) $_GET['tambah'];
+    $paket_id = (int)$paket_id;
+    $status_id = (int)$_GET['tambah'];
 
-    $q = mysqli_query($conn, "
-        SELECT IFNULL(MAX(urutan),0)+1 AS urut
+    $q = mysqli_query($conn,"
+        SELECT IFNULL(MAX(urutan),0)+1 urut
         FROM package_status_flow
         WHERE package_id='$paket_id'
     ");
     $urut = mysqli_fetch_assoc($q)['urut'];
 
-    mysqli_query($conn, "
-        INSERT INTO package_status_flow (package_id, status_id, urutan)
+    mysqli_query($conn,"
+        INSERT INTO package_status_flow
+        (package_id,status_id,urutan)
         VALUES ('$paket_id','$status_id','$urut')
     ");
 
@@ -27,58 +26,40 @@ if (isset($_GET['tambah'])) {
     exit;
 }
 
-/* =====================
-   HAPUS STATUS DARI PAKET
-===================== */
+/* HAPUS */
 if (isset($_GET['hapus'])) {
-    $flow_id = (int) $_GET['hapus'];
-
-    mysqli_query($conn, "
-        DELETE FROM package_status_flow WHERE id='$flow_id'
-    ");
-
+    $id = (int)$_GET['hapus'];
+    mysqli_query($conn,"DELETE FROM package_status_flow WHERE id='$id'");
     header("Location: pengaturan_alur.php?paket_id=$paket_id");
     exit;
 }
 
-/* =====================
-   DATA PAKET
-===================== */
-$paket = mysqli_query($conn, "
-    SELECT id, nama_paket
-    FROM laundry_packages
-    WHERE is_active=1
-    ORDER BY nama_paket
+/* PAKET */
+$paket = mysqli_query($conn,"
+    SELECT id,nama_paket FROM laundry_packages
+    WHERE is_active=1 AND cabang_id='$cabang_id'
 ");
 
-/* =====================
-   DATA STATUS
-===================== */
-$semua_status = mysqli_query($conn, "
-    SELECT id, nama_status
-    FROM laundry_status
-    WHERE is_active=1
-    ORDER BY nama_status
+/* STATUS */
+$semua_status = mysqli_query($conn,"
+    SELECT id,nama_status FROM laundry_status
+    WHERE is_active=1 AND cabang_id='$cabang_id'
 ");
 
-/* =====================
-   STATUS AKTIF DI PAKET
-===================== */
-$status_aktif = [];
+/* STATUS AKTIF */
+$status_aktif=[];
 if ($paket_id) {
-    $q = mysqli_query($conn, "
-        SELECT psf.id AS flow_id, s.id, s.nama_status
+    $q = mysqli_query($conn,"
+        SELECT psf.id flow_id, s.id, s.nama_status
         FROM package_status_flow psf
-        JOIN laundry_status s ON psf.status_id = s.id
+        JOIN laundry_status s ON psf.status_id=s.id
         WHERE psf.package_id='$paket_id'
-          AND s.is_active = 1
-        ORDER BY psf.urutan ASC
+        ORDER BY psf.urutan
     ");
-    while ($r = mysqli_fetch_assoc($q)) {
-        $status_aktif[] = $r;
-    }
+    while ($r=mysqli_fetch_assoc($q)) $status_aktif[]=$r;
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="id">

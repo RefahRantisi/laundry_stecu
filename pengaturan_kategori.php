@@ -1,29 +1,29 @@
 <?php
-
 require 'auth.php';
 include 'koneksi.php';
 
 /* =========================
-   TAMBAH / EDIT KATEGORI & SATUAN
+   TAMBAH / EDIT
 ========================= */
 if (isset($_POST['simpan'])) {
     $kategori = mysqli_real_escape_string($conn, $_POST['kategori_barang']);
-    $satuan   = mysqli_real_escape_string($conn, $_POST['nama_satuan']);
-    $ket      = mysqli_real_escape_string($conn, $_POST['keterangan']);
+    $satuan = mysqli_real_escape_string($conn, $_POST['nama_satuan']);
+    $ket = mysqli_real_escape_string($conn, $_POST['keterangan']);
 
     if (!empty($_POST['id'])) {
-        $id = (int) $_POST['id'];
+        $id = (int)$_POST['id'];
         mysqli_query($conn, "
-            UPDATE laundry_units 
-            SET kategori_barang='$kategori', 
-                nama_satuan='$satuan', 
+            UPDATE laundry_units SET
+                kategori_barang='$kategori',
+                nama_satuan='$satuan',
                 keterangan='$ket'
-            WHERE id='$id'
+            WHERE id='$id' AND cabang_id='$cabang_id'
         ");
     } else {
         mysqli_query($conn, "
-            INSERT INTO laundry_units (kategori_barang, nama_satuan, keterangan, is_active)
-            VALUES ('$kategori', '$satuan', '$ket', 1)
+            INSERT INTO laundry_units
+            (kategori_barang, nama_satuan, keterangan, is_active, cabang_id)
+            VALUES ('$kategori','$satuan','$ket',1,'$cabang_id')
         ");
     }
 
@@ -31,44 +31,46 @@ if (isset($_POST['simpan'])) {
     exit;
 }
 
+
 /* =========================
-   NONAKTIFKAN KATEGORI (SOFT DELETE)
+   HAPUS (SOFT)
 ========================= */
 if (isset($_GET['hapus'])) {
-    $id = (int) $_GET['hapus'];
-
+    $id = (int)$_GET['hapus'];
     mysqli_query($conn, "
-        UPDATE laundry_units 
-        SET is_active = 0 
-        WHERE id='$id'
+        UPDATE laundry_units SET is_active=0
+        WHERE id='$id' AND cabang_id='$cabang_id'
     ");
-
     header("Location: pengaturan_kategori.php");
     exit;
 }
 
+
 /* =========================
-   DATA EDIT
+   EDIT DATA
 ========================= */
 $edit = null;
 if (isset($_GET['edit'])) {
-    $id = (int) $_GET['edit'];
+    $id = (int)$_GET['edit'];
     $q = mysqli_query($conn, "
-        SELECT * FROM laundry_units 
-        WHERE id='$id' AND is_active=1
+        SELECT * FROM laundry_units
+        WHERE id='$id' AND cabang_id='$cabang_id' AND is_active=1
     ");
     $edit = mysqli_fetch_assoc($q);
 }
 
+
 /* =========================
-   DATA LIST (HANYA AKTIF)
+   LIST DATA
 ========================= */
 $data = mysqli_query($conn, "
     SELECT * FROM laundry_units
-    WHERE is_active = 1
+    WHERE is_active=1 AND cabang_id='$cabang_id'
     ORDER BY id DESC
 ");
+
 ?>
+
 
 
 <!DOCTYPE html>

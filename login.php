@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // 🔒 Ambil hanya ADMIN
         $stmt = $conn->prepare("
-            SELECT id, username, password, role, owner_id
+            SELECT id, username, password, role, owner_id, cabang_id
             FROM users
             WHERE username = ? AND role = 'admin' AND is_active = 1
             LIMIT 1
@@ -38,10 +38,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['login'] = true;
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
-                $_SESSION['role'] = $user['role'];       // 🔥 WAJIB
+                $_SESSION['role'] = $user['role'];      
                 $_SESSION['owner_id'] = $user['owner_id'];
 
-                header("Location: dashboard.php");
+                $_SESSION['cabang_id'] = (int) $user['cabang_id'];
+		header("Location: dashboard.php");
                 exit;
 
             } else {
