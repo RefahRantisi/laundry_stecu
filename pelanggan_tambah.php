@@ -10,8 +10,8 @@ if (isset($_POST['simpan'])) {
     $alamat = $_POST['alamat'];
 
     mysqli_query($conn, "
-        INSERT INTO customers (nama, no_telp, alamat)
-        VALUES ('$nama','$telp','$alamat')
+        INSERT INTO customers (nama, no_telp, alamat, cabang_id)
+        VALUES ('$nama','$telp','$alamat', '$cabang_id')
     ");
 
     // Ambil ID customer yang baru ditambahkan

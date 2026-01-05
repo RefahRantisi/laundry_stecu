@@ -1,9 +1,9 @@
 <?php
-
 require 'auth.php';
 include 'koneksi.php';
 
-$user_id = $_SESSION['user_id'];
+$user_id   = $_SESSION['user_id'];
+$cabang_id = $_SESSION['cabang_id'];
 
 /* ===============================
    AMBIL DATA CUSTOMER (AUTOCOMPLETE)
@@ -11,7 +11,10 @@ $user_id = $_SESSION['user_id'];
 $customers = [];
 $q = mysqli_query(
     $conn,
-    "SELECT id, nama, no_telp FROM customers ORDER BY nama ASC"
+    "SELECT id, nama, no_telp
+     FROM customers
+     WHERE cabang_id = '$cabang_id'
+     ORDER BY nama ASC"
 );
 while ($r = mysqli_fetch_assoc($q)) {
     $customers[] = $r;
@@ -21,42 +24,45 @@ while ($r = mysqli_fetch_assoc($q)) {
    DATA DARI URL (SETELAH TAMBAH CUSTOMER)
 =============================== */
 $customer_id_url = $_GET['customer_id'] ?? '';
-$nama_url = $_GET['nama'] ?? '';
-$telp_url = $_GET['no_telp'] ?? '';
+$nama_url        = $_GET['nama'] ?? '';
+$telp_url        = $_GET['no_telp'] ?? '';
 
 $display_value = ($nama_url && $telp_url)
     ? "$nama_url - $telp_url"
     : '';
 
 /* ===============================
-   AMBIL DATA KATEGORI AKTIF
+   AMBIL DATA KATEGORI AKTIF (PER CABANG)
 =============================== */
 $kategori_list = mysqli_query(
     $conn,
-    "SELECT DISTINCT kategori_barang 
+    "SELECT DISTINCT kategori_barang
      FROM laundry_units
      WHERE is_active = 1
+       AND cabang_id = '$cabang_id'
      ORDER BY kategori_barang ASC"
 );
 
 /* ===============================
-   AMBIL DATA PAKET + KATEGORI + SATUAN
+   AMBIL DATA PAKET (PER CABANG)
 =============================== */
+$pakets = [];
 $pakets_query = mysqli_query(
     $conn,
     "SELECT 
-        lp.id, 
-        lp.nama_paket, 
+        lp.id,
+        lp.nama_paket,
         lp.harga,
         lu.kategori_barang,
         lu.nama_satuan
      FROM laundry_packages lp
      JOIN laundry_units lu ON lp.unit_id = lu.id
-     WHERE lp.is_active = 1 AND lu.is_active = 1
+     WHERE lp.is_active = 1
+       AND lu.is_active = 1
+       AND lp.cabang_id = '$cabang_id'
+       AND lu.cabang_id = '$cabang_id'
      ORDER BY lu.kategori_barang ASC, lp.nama_paket ASC"
 );
-
-$pakets = [];
 while ($p = mysqli_fetch_assoc($pakets_query)) {
     $pakets[] = $p;
 }
@@ -66,19 +72,19 @@ while ($p = mysqli_fetch_assoc($pakets_query)) {
 =============================== */
 if (isset($_POST['simpan'])) {
 
-    $tanggal = date('Y-m-d H:i:s');
-    $qty = floatval($_POST['qty']);
-    $package_id = intval($_POST['package_id']);
+    $tanggal     = date('Y-m-d H:i:s');
+    $qty         = floatval($_POST['qty']);
+    $package_id  = intval($_POST['package_id']);
     $customer_id = intval($_POST['customer_id']);
-    $user_id = $_SESSION['user_id'];
 
-    /* ===============================
-       VALIDASI CUSTOMER
-    =============================== */
+    /* ===== VALIDASI CUSTOMER (PER CABANG) ===== */
     $cek_customer = $conn->prepare(
-        "SELECT id FROM customers WHERE id = ?"
+        "SELECT id
+         FROM customers
+         WHERE id = ?
+           AND cabang_id = ?"
     );
-    $cek_customer->bind_param("i", $customer_id);
+    $cek_customer->bind_param("ii", $customer_id, $cabang_id);
     $cek_customer->execute();
     $cek_customer->store_result();
 
@@ -87,42 +93,43 @@ if (isset($_POST['simpan'])) {
         exit;
     }
 
-    /* ===============================
-       VALIDASI PAKET & AMBIL HARGA
-    =============================== */
+    /* ===== VALIDASI PAKET + AMBIL HARGA ===== */
     $cek_paket = $conn->prepare(
         "SELECT lp.harga
          FROM laundry_packages lp
          JOIN laundry_units lu ON lp.unit_id = lu.id
-         WHERE lp.id = ? AND lp.is_active = 1 AND lu.is_active = 1
+         WHERE lp.id = ?
+           AND lp.is_active = 1
+           AND lu.is_active = 1
+           AND lp.cabang_id = ?
+           AND lu.cabang_id = ?
          LIMIT 1"
     );
-    $cek_paket->bind_param("i", $package_id);
+    $cek_paket->bind_param("iii", $package_id, $cabang_id, $cabang_id);
     $cek_paket->execute();
     $result_paket = $cek_paket->get_result();
 
     if ($result_paket->num_rows == 0) {
-        echo "<script>alert('Paket tidak aktif');history.back();</script>";
+        echo "<script>alert('Paket tidak valid');history.back();</script>";
         exit;
     }
 
-    $row_paket = $result_paket->fetch_assoc();
+    $row_paket   = $result_paket->fetch_assoc();
     $harga_paket = $row_paket['harga'];
-    $total = $harga_paket * $qty;
+    $total       = $harga_paket * $qty;
 
-    /* ===============================
-       AMBIL STATUS AWAL
-    =============================== */
-    $q_status = $conn->prepare("
-        SELECT psf.status_id
-        FROM package_status_flow psf
-        JOIN laundry_status ls ON psf.status_id = ls.id
-        WHERE psf.package_id = ?
-          AND ls.is_active = 1
-        ORDER BY psf.urutan ASC
-        LIMIT 1
-    ");
-    $q_status->bind_param("i", $package_id);
+    /* ===== AMBIL STATUS AWAL (PER CABANG) ===== */
+    $q_status = $conn->prepare(
+        "SELECT psf.status_id
+         FROM package_status_flow psf
+         JOIN laundry_status ls ON psf.status_id = ls.id
+         WHERE psf.package_id = ?
+           AND ls.is_active = 1
+           AND ls.cabang_id = ?
+         ORDER BY psf.urutan ASC
+         LIMIT 1"
+    );
+    $q_status->bind_param("ii", $package_id, $cabang_id);
     $q_status->execute();
     $res_status = $q_status->get_result();
 
@@ -133,30 +140,30 @@ if (isset($_POST['simpan'])) {
 
     $status_id = $res_status->fetch_assoc()['status_id'];
 
-    /* ===============================
-       SIMPAN KE transactions
-    =============================== */
-    $stmt = $conn->prepare("
-        INSERT INTO transactions (
+    /* ===== SIMPAN TRANSAKSI ===== */
+    $stmt = $conn->prepare(
+        "INSERT INTO transactions (
             tanggal,
             customer_id,
             package_id,
             berat_kg,
             total_harga,
             status_id,
-            user_id
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
-    ");
+            user_id,
+            cabang_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+    );
 
     $stmt->bind_param(
-        "siiddii",
+        "siiddiii",
         $tanggal,
         $customer_id,
         $package_id,
         $qty,
         $total,
         $status_id,
-        $user_id
+        $user_id,
+        $cabang_id
     );
 
     $stmt->execute();
@@ -167,6 +174,8 @@ if (isset($_POST['simpan'])) {
     </script>";
 }
 ?>
+
+
 
 <!DOCTYPE html>
 <html>
